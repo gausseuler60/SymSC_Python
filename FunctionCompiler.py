@@ -1,5 +1,4 @@
 import sympy as sp
-from copy import deepcopy
 
 
 class FunctionCompiler:
@@ -38,6 +37,58 @@ class FunctionCompiler:
 
         self.final_system = new_eq
 
+    def _prepair_matrix(self):
+        def is_needed(eqn):
+            left_part = eqn.lhs
+            right_part = eqn.rhs
+
+            if left_part.args[0].args[1].func == sp.core.add.Add:
+                return True  # if '+' in index
+
+            # if not, find te right part
+            # if see 'd' operation, this equation is needed
+            def find_d(expr):
+                if expr.func == sp.core.function.Derivative:
+                    return True
+                else:
+                    for arg in expr.args:
+                        if find_d(arg):
+                            return True
+                return False
+            return find_d(right_part)
+
+        X = []
+        B = []
+
+        needed_eqns_idx = []
+        # Find equations only of type dy(N+1) = ... or d(...)=d(...)
+
+        for i, eqn in enumerate(self.final_system):
+            if is_needed(eqn):
+                X.append(eqn.lhs)
+                needed_eqns_idx.append(i)
+
+        n_eqns = len(X)
+        A = sp.eye(n_eqns, n_eqns)
+
+        # walk over selected equations and make a matrix row for it
+        for i, n_eqn in enumerate(needed_eqns_idx):
+            eqn = self.final_system[n_eqn].rhs
+
+            # find coefficients before all possible terms
+            for j, term in enumerate(X):
+                coef = eqn.coeff(term)
+                A[i, j] += coef
+
+            # make residual term (B), without terms which are multipliers of X
+            for term in X:
+                eqn = eqn.subs(term, 0)
+            B.append(eqn)
+
+        # save results
+        self.X = X
+        self.A = A
+        self.B = B
 
     def compile(self):
         self._assign_indices()
@@ -99,7 +150,8 @@ class FunctionCompiler:
             self.current_eq = s_pre
             self.another_eq = ode_eq_o1 + ode_eq_1 + ode_eq_2
 
-            self._substitute_element_currents()
+        self._substitute_element_currents()
+        self._prepair_matrix()
 
     def print_equations(self, eqns):
         for eqn in eqns:
