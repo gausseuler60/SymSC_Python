@@ -4,12 +4,18 @@ import sympy as sp
 class FunctionCompiler:
     def __init__(self, object_list, fixed_parameter):
         self.object_list = object_list
-        self.fixed_parameter = fixed_parameter
+        self._assigned = False
 
-        self.object_dict = {obj.name: obj for obj in object_list}
+        # if fixed_parameter is not a list, make it a list
+        if not isinstance(fixed_parameter, list):
+            fixed_parameter = [fixed_parameter]
+        self.fixed_parameter = fixed_parameter
 
     # assigns names and variable indices to objects
     def _assign_indices(self):
+        if self._assigned:
+            return
+
         self.indices = []
         N = 0
 
@@ -22,6 +28,8 @@ class FunctionCompiler:
                 N = max(obj.loc)
 
         self.N = N
+        self.object_dict = {obj.name: obj for obj in self.object_list}
+        self._assigned = True
 
         # TODO: add complex object initialization support
 
@@ -36,6 +44,61 @@ class FunctionCompiler:
             new_eq.append(eqn)
 
         self.final_system = new_eq
+
+    def _fix_param(self):
+        # uses:
+        # self.needed_eqns
+        # MATRIX: A, X, B
+        # sLin TODO
+        # self.ind_order1
+        # object list
+        # number od objects
+        # fixed parameter
+        A = self.A
+        mas_a = sp.Matrix()
+        size_a = A.cols
+
+        for k in range(size_a):
+            mas_a = mas_a.col_join(A.col(k))
+        mas_a = list(mas_a)
+
+        def process_equations(sys_eq):
+            sys_eq_new = [None] * len(sys_eq)
+            # substitute P(i) instead of fixed parameters
+            p = sp.symbols("P")
+            for i, par in enumerate(self.fixed_parameter):
+                par_symbol = sp.Indexed(p, i + 1)
+                for j, eqn in enumerate(sys_eq):
+                    sys_eq_new[j] = eqn.subs(sp.symbols(par), par_symbol)
+
+            # substitute object parameters and N
+            obj_dict = self.object_dict
+            n = sp.symbols('N')
+            for i in range(len(sys_eq_new)):
+                eqn = sys_eq_new[i]
+                for sym in eqn.free_symbols:
+                    strsym = str(sym)
+                    if '.' in strsym:
+                        obj, prop = strsym.split('.')
+                        obj = obj_dict[obj]
+                        eqn = eqn.subs(sym, getattr(obj, prop)).subs(n, self.N)
+                sys_eq_new[i] = eqn
+
+            return sys_eq_new
+
+        # self.lin_eq = ... TODO: sLin
+        self.diff_eq = process_equations(self.needed_eqns)
+        self.out_B = process_equations(self.B)
+        self.out_X = self.X
+        out_mas_a = process_equations(mas_a)
+
+        # make a new A matrix
+        out_A = []
+        for i in range(size_a):
+            out_A.append(out_mas_a[i*size_a: (i+1)*size_a])
+        out_A = sp.Matrix(out_A)
+
+        self.out_A = out_A
 
     def _prepair_matrix(self):
         def is_needed(eqn):
@@ -60,6 +123,7 @@ class FunctionCompiler:
         X = []
         B = []
 
+        needed_eqns = []
         needed_eqns_idx = []
         # Find equations only of type dy(N+1) = ... or d(...)=d(...)
 
@@ -67,6 +131,7 @@ class FunctionCompiler:
             if is_needed(eqn):
                 X.append(eqn.lhs)
                 needed_eqns_idx.append(i)
+                needed_eqns.append(eqn)
 
         n_eqns = len(X)
         A = sp.eye(n_eqns, n_eqns)
@@ -89,6 +154,8 @@ class FunctionCompiler:
         self.X = X
         self.A = A
         self.B = B
+        self.needed_eqns = needed_eqns
+
 
     def compile(self):
         self._assign_indices()
@@ -150,8 +217,11 @@ class FunctionCompiler:
             self.current_eq = s_pre
             self.another_eq = ode_eq_o1 + ode_eq_1 + ode_eq_2
 
+        self.ind_order1 = ind_order1
+
         self._substitute_element_currents()
         self._prepair_matrix()
+        self._fix_param()
 
     def print_equations(self, eqns):
         for eqn in eqns:
