@@ -1,3 +1,5 @@
+import numpy as np
+
 from Objects.ElementBase import *
 
 
@@ -31,3 +33,10 @@ class L(ElementBase):
         symbol_current = self.var_current()
         final_equation = sp.Eq(symbol_current, S)
         return final_equation
+
+    def get_data(self, kind, t, y):
+        if kind == 'I':
+            p = super().get_data('P')
+            return np.column_stack((p[:, 0], p[:, 1] / self.val))
+        else:
+            return super().get_data(kind, t, y)

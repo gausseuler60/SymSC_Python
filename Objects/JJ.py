@@ -1,3 +1,5 @@
+import numpy as np
+
 from Objects.ElementBase import *
 
 
@@ -56,3 +58,11 @@ class JJ(ElementBase):
         final_equation = sp.Eq(symbol_current, Ic + Ir + Is)
 
         return final_equation
+
+    def get_data(self, kind, t, y):
+        if kind == 'I':
+            pass
+        elif kind == 'Edis':
+            pass
+        else:
+            return super().get_data(kind, t, y)

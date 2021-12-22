@@ -1,8 +1,10 @@
 import sympy as sp
+import numpy as np
+from scipy.integrate import odeint
 
 
 class FunctionCompiler:
-    def __init__(self, object_list, fixed_parameter):
+    def __init__(self, object_list, fixed_parameter, fixed_param_val):
         self.object_list = object_list
         self._assigned = False
 
@@ -10,6 +12,10 @@ class FunctionCompiler:
         if not isinstance(fixed_parameter, list):
             fixed_parameter = [fixed_parameter]
         self.fixed_parameter = fixed_parameter
+        if not isinstance(fixed_param_val, list):
+            fixed_param_val = [fixed_param_val]
+        self.fixed_param_val = fixed_param_val
+        self.fixed_param_dict = {name: val for name, val in zip(fixed_parameter, fixed_param_val)}
 
     # assigns names and variable indices to objects
     def _assign_indices(self):
@@ -67,7 +73,7 @@ class FunctionCompiler:
             # substitute P(i) instead of fixed parameters
             p = sp.symbols("P")
             for i, par in enumerate(self.fixed_parameter):
-                par_symbol = sp.Indexed(p, i + 1)
+                par_symbol = sp.sympify(self.fixed_param_dict[par]) # sp.Indexed(p, i + 1)
                 for j, eqn in enumerate(sys_eq):
                     sys_eq_new[j] = eqn.subs(sp.symbols(par), par_symbol)
 
@@ -81,7 +87,8 @@ class FunctionCompiler:
                     if '.' in strsym:
                         obj, prop = strsym.split('.')
                         obj = obj_dict[obj]
-                        eqn = eqn.subs(sym, getattr(obj, prop)).subs(n, self.N)
+                        eqn = eqn.subs(sym, getattr(obj, prop))
+                eqn = eqn.subs(n, self.N)
                 sys_eq_new[i] = eqn
 
             return sys_eq_new
@@ -89,7 +96,7 @@ class FunctionCompiler:
         # self.lin_eq = ... TODO: sLin
         self.diff_eq = process_equations(self.needed_eqns)
         self.out_B = process_equations(self.B)
-        self.out_X = self.X
+        self.out_X = process_equations(self.X)  # substitute N
         out_mas_a = process_equations(mas_a)
 
         # make a new A matrix
@@ -101,7 +108,7 @@ class FunctionCompiler:
         self.out_A = out_A
 
     def _prepair_matrix(self):
-        def is_needed(eqn):
+        def is_base_equation(eqn):
             left_part = eqn.lhs
             right_part = eqn.rhs
 
@@ -123,21 +130,22 @@ class FunctionCompiler:
         X = []
         B = []
 
-        needed_eqns = []
-        needed_eqns_idx = []
+        eqns_for_second_derivative = []
+        base_eqns_idx = []
         # Find equations only of type dy(N+1) = ... or d(...)=d(...)
 
         for i, eqn in enumerate(self.final_system):
-            if is_needed(eqn):
+            if not is_base_equation(eqn):
+                eqns_for_second_derivative.append(eqn)
+            else:
                 X.append(eqn.lhs)
-                needed_eqns_idx.append(i)
-                needed_eqns.append(eqn)
+                base_eqns_idx.append(i)
 
         n_eqns = len(X)
         A = sp.eye(n_eqns, n_eqns)
 
         # walk over selected equations and make a matrix row for it
-        for i, n_eqn in enumerate(needed_eqns_idx):
+        for i, n_eqn in enumerate(base_eqns_idx):
             eqn = self.final_system[n_eqn].rhs
 
             # find coefficients before all possible terms
@@ -154,8 +162,7 @@ class FunctionCompiler:
         self.X = X
         self.A = A
         self.B = B
-        self.needed_eqns = needed_eqns
-
+        self.needed_eqns = eqns_for_second_derivative
 
     def compile(self):
         self._assign_indices()
@@ -222,6 +229,60 @@ class FunctionCompiler:
         self._substitute_element_currents()
         self._prepair_matrix()
         self._fix_param()
+
+    def solve(self, t, y0):
+        # input values:
+        # OdeEq -> diff_eq
+        # OdeEq2 -> (A, X, B)
+        # LinEqS -> TODO
+        # N -> N
+        # P -> fix param values, already in equations
+
+        def _extract_number_from_deriv_term(term):
+            return int(term.args[0].args[1]) - 1  # return zero-based index
+
+        def _odeint_kernel(y, t):
+            N = len(y)
+            y_result = [sp.sympify(0)] * N
+            var_y = sp.symbols("y")
+            time = sp.symbols("t")
+
+            def _substitute(expr):
+                # substitute all y_i and d(y_i) variables
+                # all y_i are the input
+                # and d(y_i) are output array
+                for i in range(N):
+                    y_i = sp.Indexed(var_y, i+1)
+                    expr = expr.subs(sp.Derivative(y_i, time), y_result[i])
+                    expr = expr.subs(y_i, y[i])
+
+                return float(expr)
+
+            # parse equations like dy(...) = y(...)
+            for eqn in self.diff_eq:
+                lside = eqn.lhs
+                rside = eqn.rhs
+                n_var_deriv = _extract_number_from_deriv_term(lside)
+                result_rhs = _substitute(rside)
+                y_result[n_var_deriv] = result_rhs
+
+            # parse another equations
+            A = self.out_A
+            B = self.out_B
+            B_final = [_substitute(b) for b in B]
+            A_final = np.zeros((A.rows, A.cols))
+            for i in range(A.rows):
+                for j in range(A.cols):
+                    A_final[i, j] = _substitute(A[i,j])
+            X = np.linalg.solve(A_final, B_final)
+
+            for i, xi in enumerate(self.out_X):  # go over second derivatives
+                n_var_deriv = _extract_number_from_deriv_term(xi)
+                y_result[n_var_deriv] = X[i]
+
+            return y_result
+
+        return odeint(_odeint_kernel, y0, t)
 
     def print_equations(self, eqns):
         for eqn in eqns:
