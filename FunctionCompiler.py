@@ -1,6 +1,7 @@
 import sympy as sp
 import numpy as np
 from scipy.integrate import odeint
+from Lib import *
 
 
 class FunctionCompiler:
@@ -241,40 +242,58 @@ class FunctionCompiler:
         def _extract_number_from_deriv_term(term):
             return int(term.args[0].args[1]) - 1  # return zero-based index
 
+        N = len(y0)
+        var_y = sp.symbols("y")
+        time = sp.symbols("t")
+        args_eq = []
+
+        # functions
+        for i in range(N):
+            y_i = sp.Indexed(var_y, i + 1)
+            args_eq.append(y_i)
+        # derivatives
+        for i in range(N):
+            y_i = sp.Indexed(var_y, i + 1)
+            args_eq.append(sp.Derivative(y_i, time))
+        # time
+        args_eq.append(time)
+
+        diff_eq_lmbd = {}
+
+        # parse equations like dy(...) = y(...)
+        for eqn in self.diff_eq:
+            lside = eqn.lhs
+            rside = eqn.rhs
+            n_var_deriv = _extract_number_from_deriv_term(lside)
+            diff_eq_lmbd[n_var_deriv] = sp.lambdify(args_eq, rside)
+
+        # parse another equations
+        A = self.out_A
+        B = self.out_B
+        B_final = [sp.lambdify(args_eq, b) for b in B]
+        A_final = np.zeros((A.rows, A.cols), dtype=object)
+        for i in range(A.rows):
+            for j in range(A.cols):
+                A_final[i, j] = sp.lambdify(args_eq, A[i, j])
+
         def _odeint_kernel(y, t):
             N = len(y)
-            y_result = [sp.sympify(0)] * N
+            y_result = [0] * N
             var_y = sp.symbols("y")
             time = sp.symbols("t")
 
-            def _substitute(expr):
-                # substitute all y_i and d(y_i) variables
-                # all y_i are the input
-                # and d(y_i) are output array
-                for i in range(N):
-                    y_i = sp.Indexed(var_y, i+1)
-                    expr = expr.subs(sp.Derivative(y_i, time), y_result[i])
-                    expr = expr.subs(y_i, y[i])
+            for n_deriv, eq in diff_eq_lmbd.items():
+                args = np.hstack((y, y_result, [t]))
+                y_result[n_deriv] = eq(*args)
 
-                return float(expr)
-
-            # parse equations like dy(...) = y(...)
-            for eqn in self.diff_eq:
-                lside = eqn.lhs
-                rside = eqn.rhs
-                n_var_deriv = _extract_number_from_deriv_term(lside)
-                result_rhs = _substitute(rside)
-                y_result[n_var_deriv] = result_rhs
-
-            # parse another equations
-            A = self.out_A
-            B = self.out_B
-            B_final = [_substitute(b) for b in B]
-            A_final = np.zeros((A.rows, A.cols))
+            args = np.hstack((y, y_result, [t]))
+            B_now = [i(*args) for i in B_final]
+            A_now = np.zeros((A.rows, A.cols))
             for i in range(A.rows):
                 for j in range(A.cols):
-                    A_final[i, j] = _substitute(A[i,j])
-            X = np.linalg.solve(A_final, B_final)
+                    A_now[i, j] = A_final[i, j](*args)
+
+            X = np.linalg.solve(A_now, B_now)
 
             for i, xi in enumerate(self.out_X):  # go over second derivatives
                 n_var_deriv = _extract_number_from_deriv_term(xi)

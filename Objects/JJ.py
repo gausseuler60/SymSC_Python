@@ -22,11 +22,7 @@ class JJ(ElementBase):
     def get_equation(self):
         k1, k2 = self.data_index
 
-        if k1 < 0 or k2 < 0:
-            self.error("is connected to a node with a negative index")
-
-        if k1 == 0 and k2 == 0:
-            self.warning("is grounded at both outputs")
+        self.check_contacts(k1, k2)
 
         N_ = sp.symbols("N")
         time = sp.symbols("t")
@@ -61,8 +57,33 @@ class JJ(ElementBase):
 
     def get_data(self, kind, t, y):
         if kind == 'I':
-            pass
+            n = y.shape[1] // 2
+
+            data1 = t
+            if self.data_index[0] != 0 and self.data_index[1] != 0:
+                pre_data_0 = y[:, self.data_index[0] - 1] - y[:, self.data_index[1] - 1]
+                pre_data_1 = y[:, n + self.data_index[0] - 1] - y[:, n + self.data_index[1] - 1]
+            else:
+                if self.data_index[0] == 0:
+                    pre_data_0 = y[:, self.data_index[1] - 1]
+                    pre_data_1 = y[:, n + self.data_index[1] - 1]
+                else:
+                    pre_data_0 = y[:, self.data_index[0] - 1]
+                    pre_data_1 = y[:, n + self.data_index[0] - 1]
+
+            dt = data1[1] - data1[0]
+            pre_data_2 = np.zeros_like(t)
+
+            pre_data_2[0] = pre_data_1[0] / dt
+            for j in range(1, len(t)):
+                pre_data_2[j] = (pre_data_1[j] - pre_data_1[j]) / dt
+
+            values = pre_data_2 + self.al * pre_data_1 + self.A * np.sin(pre_data_0) + self.B * np.sin(pre_data_0)
+
+            return np.column_stack((t, values))
+
         elif kind == 'Edis':
             pass
+
         else:
             return super().get_data(kind, t, y)

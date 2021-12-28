@@ -36,7 +36,7 @@ class L(ElementBase):
 
     def get_data(self, kind, t, y):
         if kind == 'I':
-            p = super().get_data('P')
+            p = super().get_data('P', t, y)
             return np.column_stack((p[:, 0], p[:, 1] / self.val))
         else:
             return super().get_data(kind, t, y)

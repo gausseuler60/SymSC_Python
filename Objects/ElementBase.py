@@ -26,6 +26,13 @@ class ElementBase:
         I_ = sp.symbols("I")
         return sp.Indexed(I_, sp.symbols(self.name))
 
+    def check_contacts(self, k1, k2):
+        if k1 < 0 or k2 < 0:
+            self.error("is connected to a node with a negative index")
+
+        if k1 == 0 and k2 == 0:
+            self.warning("is grounded at both outputs")
+
     # get equation for this element current
     # must be overridden in a child class
     def get_equation(self):
