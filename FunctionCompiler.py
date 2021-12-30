@@ -26,8 +26,16 @@ class FunctionCompiler:
         self.indices = []
         N = 0
 
-        for i, obj in enumerate(self.object_list):
-            obj.name = f"{obj.name}{i+1}"  # make one-based numbering
+        index_dict = {}
+
+        for obj in self.object_list:
+            # make an unique number sequence for each object type
+            if obj.name in index_dict:
+                numb = index_dict[obj.name] + 1
+            else:
+                index_dict[obj.name] = 1
+                numb = 1
+            obj.name = f"{obj.name}{numb}"  # make one-based numbering
             obj.data_index = obj.loc
             obj.init_object()
 
@@ -37,6 +45,8 @@ class FunctionCompiler:
         self.N = N
         self.object_dict = {obj.name: obj for obj in self.object_list}
         self._assigned = True
+
+        print('Generated objects are:', " ".join(self.object_dict.keys()))
 
         # TODO: add complex object initialization support
 

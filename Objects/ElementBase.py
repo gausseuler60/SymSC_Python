@@ -49,9 +49,9 @@ class ElementBase:
                 data2 = y[:, self.data_index[0] - 1] - y[:, self.data_index[1] - 1]
             else:
                 if self.data_index[0] == 0:
-                    data2 = y[:, self.data_index[1]]
+                    data2 = y[:, self.data_index[1] - 1]
                 else:
-                    data2 = y[:, self.data_index[0]]
+                    data2 = y[:, self.data_index[0] - 1]
 
         elif kind == 'V':
             data1 = t
