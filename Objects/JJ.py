@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.integrate import quad
 
 from Objects.ElementBase import *
 
@@ -35,7 +36,8 @@ class JJ(ElementBase):
             y_k = sp.Indexed(sp.symbols("y"), k)
             Ic = sp.Derivative(y_kn, time)
             Ir = self.symbol_attribute('al') * sp.Derivative(y_k, time)
-            Is = self.symbol_attribute('A') * sp.sin(y_k) + self.symbol_attribute('B') * sp.sin(2 * y_k)
+            Is = (self.symbol_attribute('A') * sp.sin(y_k) if self.A != 0 else 0) + \
+                 (self.symbol_attribute('B') * sp.sin(2 * y_k) if self.B != 0 else 0)
         else:
             # two variables will be
             kn1 = N_ + k1
@@ -48,7 +50,8 @@ class JJ(ElementBase):
             diff_deriv = sp.Derivative(y_k1, time) - sp.Derivative(y_k2, time)
             diff_y = y_k1 - y_k2
             Ir = self.symbol_attribute('al') * diff_deriv
-            Is = self.symbol_attribute('A') * sp.sin(diff_y) + self.symbol_attribute('B') * sp.sin(2 * diff_y)
+            Is = (self.symbol_attribute('A') * sp.sin(diff_y) if self.A != 0 else 0) + \
+                 (self.symbol_attribute('B') * sp.sin(2 * diff_y) if self.B != 0 else 0)
 
         symbol_current = self.var_current()
         final_equation = sp.Eq(symbol_current, Ic + Ir + Is)
@@ -83,7 +86,21 @@ class JJ(ElementBase):
             return np.column_stack((t, values))
 
         elif kind == 'Edis':
-            pass
+            data1 = t
+            if self.data_index[0] != 0 and self.data_index[1] != 0:
+                pre_data_2 = self.al * (y[:, self.data_index[0] - 1] - y[:, self.data_index[1] - 1]) ** 2
+            else:
+                if self.data_index[0] == 0:
+                    pre_data_2 = self.al * (y[:, self.data_index[1] - 1]) ** 2
+                else:
+                    pre_data_2 = self.al * (y[:, self.data_index[1] - 1]) ** 2
 
-        else:
+            data = np.zeros_like(data1)
+            data[0] = pre_data_2[0]
+            for k in range(1, len(data1)):
+                data[k] = quad(t[:k], pre_data_2[:k])[0]
+
+            return np.column_stack((t, data))
+
+        else:  # 'P', 'V'
             return super().get_data(kind, t, y)

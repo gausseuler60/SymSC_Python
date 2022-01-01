@@ -1,7 +1,6 @@
 import sympy as sp
 import numpy as np
 from scipy.integrate import odeint
-from Lib import *
 
 
 class FunctionCompiler:
@@ -31,10 +30,12 @@ class FunctionCompiler:
         for obj in self.object_list:
             # make an unique number sequence for each object type
             if obj.name in index_dict:
-                numb = index_dict[obj.name] + 1
+                index_dict[obj.name] += 1
+                numb = index_dict[obj.name]
             else:
                 index_dict[obj.name] = 1
                 numb = 1
+
             obj.name = f"{obj.name}{numb}"  # make one-based numbering
             obj.data_index = obj.loc
             obj.init_object()
@@ -66,7 +67,7 @@ class FunctionCompiler:
         # uses:
         # self.needed_eqns
         # MATRIX: A, X, B
-        # sLin TODO
+        # self.s_lin
         # self.ind_order1
         # object list
         # number od objects
@@ -104,7 +105,7 @@ class FunctionCompiler:
 
             return sys_eq_new
 
-        # self.lin_eq = ... TODO: sLin
+        self.lin_eq = process_equations(self.s_lin)
         self.diff_eq = process_equations(self.needed_eqns)
         self.out_B = process_equations(self.B)
         self.out_X = process_equations(self.X)  # substitute N
@@ -175,6 +176,82 @@ class FunctionCompiler:
         self.B = B
         self.needed_eqns = eqns_for_second_derivative
 
+    def _kill_lin_pins(self, eq):
+        y = sp.symbols("y")
+        psi = sp.symbols('psi')
+
+        subs_list = []
+
+        for idx in self.k_lin:
+            symb_old = sp.Indexed(y, idx)
+            symb_new = sp.Indexed(psi, idx)
+            subs_list.append((symb_old, symb_new))
+
+        eq_new = [eqi.subs(subs_list) for eqi in eq]
+        return eq_new
+
+    def _get_coef(self, equation, psi_vars):
+        # uses:
+        # KLin -> self.k_lin
+
+        coef = []
+        all_not_coef = sp.sympify(0)
+
+        for var in psi_vars:
+            now_coef = equation.coeff(var)
+            coef.append(now_coef)
+            all_not_coef += now_coef * var
+
+        free_term = equation - all_not_coef
+
+        return coef, -free_term
+
+    def _form_lin_matrix(self):
+        # uses:
+        # LinEq -> self.lin_eq
+        # KLin -> self.k_lin
+        # N - self.N
+
+        # substitute currents from equations like 'I_'=...
+
+        # is expression like 'I_...', for example, I_1 or I_JJ4
+        def is_curr_symbol(s):
+            return s.func == sp.tensor.indexed.Indexed and str(s.args[0]) == 'I'
+
+        # does expression contain terms like I_...
+        def is_curr_in_equation(s):
+            for smb in s.free_symbols:
+                if is_curr_symbol(smb):
+                    return True
+            return False
+
+        lin_eq = self._kill_lin_pins(self.lin_eq)
+        lin_eq_2 = []
+        list_to_replace = []
+
+        for eqn in lin_eq:
+            if is_curr_symbol(eqn.lhs) and not is_curr_in_equation(eqn.rhs) and eqn.rhs != 0:
+                list_to_replace.append((eqn.lhs, eqn.rhs))
+            else:
+                lin_eq_2.append(eqn)
+
+        lin_eq2 = [i.subs(list_to_replace) for i in lin_eq_2]
+
+        A_lin = []
+        B_lin = []
+
+        psi = sp.symbols("psi")
+        psi_vars = [sp.Indexed(psi, i) for i in self.k_lin]
+
+        for eqn in lin_eq2:
+            coeffs, free_term = self._get_coef(eqn.lhs, psi_vars)
+            A_lin.append(coeffs)
+            B_lin.append(free_term)
+
+        self.A_lin = A_lin
+        self.B_lin = B_lin
+        self.x_lin = psi_vars
+
     def compile(self):
         self._assign_indices()
         # TODO: add complex object initialization support
@@ -186,28 +263,30 @@ class FunctionCompiler:
         ode_eq_1 = []
         ode_eq_2 = []
         ind_order1 = []
+        s_lin = []
+        k_lin = []
 
         # write equations for network nodes
         for i in range(1, self.N + 1):  # loc==0 means a ground, don't consider it as a node
-            SLinPre = []
+            s_lin_pre = []
             order = 0
 
             for k, obj in enumerate(self.object_list):
                 if obj.data_index[0] == i:
                     S[i - 1] -= obj.var_current()
                     if obj.order == 0 and order == 0:
-                        pass  # TODO: SLinPre = ...
+                        s_lin_pre.append(s_pre[k])
                     elif obj.order == 1 and order == 0:
                         order = 1
-                        # TODO: SLinPre = ...
+                        s_lin_pre = []
                     elif obj.order == 2:
                         order = 2
-                        # TODO SLinPre = ...
+                        s_lin_pre = []
 
                 elif len(obj.data_index) > 1 and obj.data_index[1] == i:
                     S[i - 1] += obj.var_current()
                     if obj.order == 0 and order == 0:
-                        pass  # TODO: SLinPre = ...
+                        s_lin_pre.append(s_pre[k])
                     elif obj.order == 1 and order == 0:
                         order = 1
                     elif obj.order == 2:
@@ -218,8 +297,11 @@ class FunctionCompiler:
             y_Ni = sp.Indexed(sp.symbols("y"), N_ + i)
             time = sp.symbols("t")
 
-            if order == 0:
-                pass  # TODO complete
+            if order == 0 and len(s_lin_pre) != 0:
+                S[i - 1] = sp.Eq(S[i - 1], 0)
+                s_lin.extend(s_lin_pre)
+                s_lin.append(S[i - 1])
+                k_lin.append(i)
 
             elif order == 1:
                 ode_eq_o1.append(sp.Eq(sp.Derivative(y_i, time), sp.Derivative(y_i, time) + S[i - 1]))
@@ -229,34 +311,44 @@ class FunctionCompiler:
                 ode_eq_1.append(sp.Eq(sp.Derivative(y_i, time), y_Ni))
                 ode_eq_2.append(sp.Eq(sp.Derivative(y_Ni, time), sp.Derivative(y_Ni, time) + S[i - 1]))
 
-            # All equations
-            # ode_eq = s_pre + ode_eq_o1 + ode_eq_1 + ode_eq_2
-            # self.ode_eq = ode_eq
-            self.current_eq = s_pre
-            self.another_eq = ode_eq_o1 + ode_eq_1 + ode_eq_2
-
+        # All equations
+        # ode_eq = s_pre + ode_eq_o1 + ode_eq_1 + ode_eq_2
+        # self.ode_eq = ode_eq
+        self.k_lin = k_lin
+        self.s_lin = s_lin
         self.ind_order1 = ind_order1
+
+        if len(k_lin) != 0:
+            s_pre = self._kill_lin_pins(s_pre)
+            ode_eq_2 = self._kill_lin_pins(ode_eq_2)
+            ode_eq_o1 = self._kill_lin_pins(ode_eq_o1)
+
+        # originally - one array OdeEq
+        self.current_eq = s_pre
+        self.another_eq = ode_eq_o1 + ode_eq_1 + ode_eq_2
 
         self._substitute_element_currents()
         self._prepair_matrix()
         self._fix_param()
+        self._form_lin_matrix()
 
     def solve(self, t, y0):
         # input values:
         # OdeEq -> diff_eq
         # OdeEq2 -> (A, X, B)
-        # LinEqS -> TODO
+        # LinEqS -> (x_lin, A_lin, B_lin)
         # N -> N
         # P -> fix param values, already in equations
 
         def _extract_number_from_deriv_term(term):
             return int(term.args[0].args[1]) - 1  # return zero-based index
 
-        N = len(y0)
         var_y = sp.symbols("y")
         time = sp.symbols("t")
-        args_eq = []
+        N = len(y0)
 
+        # arguments for lambdify
+        args_eq = []
         # functions
         for i in range(N):
             y_i = sp.Indexed(var_y, i + 1)
@@ -267,10 +359,14 @@ class FunctionCompiler:
             args_eq.append(sp.Derivative(y_i, time))
         # time
         args_eq.append(time)
+        # psi_i variables from linear equations
+        for psii in self.x_lin:
+            args_eq.append(psii)
 
         diff_eq_lmbd = {}
 
         # parse equations like dy(...) = y(...)
+        # TODO add custom function evaluation
         for eqn in self.diff_eq:
             lside = eqn.lhs
             rside = eqn.rhs
@@ -278,6 +374,7 @@ class FunctionCompiler:
             diff_eq_lmbd[n_var_deriv] = sp.lambdify(args_eq, rside)
 
         # parse another equations
+        # TODO add custom function evaluation
         A = self.out_A
         B = self.out_B
         B_final = [sp.lambdify(args_eq, b) for b in B]
@@ -292,8 +389,24 @@ class FunctionCompiler:
             var_y = sp.symbols("y")
             time = sp.symbols("t")
 
+            # process linear equations and find Psi_... variables
+            # evaluate numeric values of A and B matrices
+            # by substitution of y_i which can be here
+            # TODO add custom function evaluation
+            if len(self.A_lin) != 0:
+                subst_list = []
+                for i in range(N):
+                    y_i = sp.Indexed(var_y, i + 1)
+                    subst_list.append((y_i, y[i]))
+                A_lin = [[float(elem.subs(subst_list)) for elem in row] for row in self.A_lin]
+                B_lin = [float(i.subs(subst_list)) for i in self.B_lin]
+
+                psix = np.linalg.solve(A_lin, B_lin)
+            else:
+                psix = []
+
             for n_deriv, eq in diff_eq_lmbd.items():
-                args = np.hstack((y, y_result, [t]))
+                args = np.hstack((y, y_result, [t], psix))
                 y_result[n_deriv] = eq(*args)
 
             args = np.hstack((y, y_result, [t]))
