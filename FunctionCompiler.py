@@ -1,6 +1,7 @@
 import sympy as sp
 import numpy as np
 from scipy.integrate import odeint
+import Functions
 
 
 class FunctionCompiler:
@@ -363,6 +364,15 @@ class FunctionCompiler:
         for psii in self.x_lin:
             args_eq.append(psii)
 
+        # custom functions for lambdify
+        # all functions must be in the Functions module
+        # and be numpy-functions (recieving numbers, not symbols, as arguments)
+        # it is required to prepair a dictionary: {'function_name': implementation}
+        custom_func_dict = {}
+        for func in dir(Functions):
+            if not func.startswith('__'):
+                custom_func_dict[func] = getattr(Functions, func)
+
         diff_eq_lmbd = {}
 
         # parse equations like dy(...) = y(...)
@@ -371,17 +381,17 @@ class FunctionCompiler:
             lside = eqn.lhs
             rside = eqn.rhs
             n_var_deriv = _extract_number_from_deriv_term(lside)
-            diff_eq_lmbd[n_var_deriv] = sp.lambdify(args_eq, rside)
+            diff_eq_lmbd[n_var_deriv] = sp.lambdify(args_eq, rside, modules=custom_func_dict)
 
         # parse another equations
         # TODO add custom function evaluation
         A = self.out_A
         B = self.out_B
-        B_final = [sp.lambdify(args_eq, b) for b in B]
+        B_final = [sp.lambdify(args_eq, b, modules=custom_func_dict) for b in B]
         A_final = np.zeros((A.rows, A.cols), dtype=object)
         for i in range(A.rows):
             for j in range(A.cols):
-                A_final[i, j] = sp.lambdify(args_eq, A[i, j])
+                A_final[i, j] = sp.lambdify(args_eq, A[i, j], modules=custom_func_dict)
 
         def _odeint_kernel(y, t):
             N = len(y)
