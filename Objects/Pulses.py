@@ -3,7 +3,7 @@ import sympy as sp
 
 
 class Pulses(ElementBase):
-    def __init__(self, loc, connect, type_p, t0, A, D, T, w):
+    def __init__(self, loc, connect='Current', type_p='Gauss', t0=50, A=1, D=15, T=500, w=1):
         super().__init__()
 
         # numeric parameters

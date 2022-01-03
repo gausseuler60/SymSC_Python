@@ -23,12 +23,15 @@ class FunctionCompiler:
         if self._assigned:
             return
 
+        complex_objects = []
+        complex_obj_indices = []
+
         self.indices = []
         N = 0
 
         index_dict = {}
 
-        for obj in self.object_list:
+        for i, obj in enumerate(self.object_list):
             # make an unique number sequence for each object type
             if obj.name in index_dict:
                 index_dict[obj.name] += 1
@@ -41,16 +44,41 @@ class FunctionCompiler:
             obj.data_index = obj.loc
             obj.init_object()
 
+            if obj.complex:
+                complex_objects.append(obj)
+                complex_obj_indices.append(i)
+
             if N < max(obj.loc):
                 N = max(obj.loc)
 
         self.N = N
+
+        # generate DataIndex for complex objects
+        # in a complex object, first 2 (sometimes 1) DataIndex are input and output,
+        # and other ones must be generated
+        for comp_obj in complex_objects:
+            n_this = comp_obj.N
+            pins = len(comp_obj.loc)
+
+            new_data_index = np.zeros(n_this - pins, dtype=int)
+            if n_this > pins:
+                for p in range(0, n_this - pins):
+                    self.N += 1
+                    print(p, self.N)
+                    new_data_index[p] = self.N
+                comp_obj.data_index.extend(new_data_index)
+
+        # unzip complex objects
+        for i, comp_obj in zip(complex_obj_indices, complex_objects):
+            # generate child objects for this object
+            new_names_obj = comp_obj.unzip()
+            self.object_list.pop(i)
+            self.object_list.extend(new_names_obj)
+
         self.object_dict = {obj.name: obj for obj in self.object_list}
         self._assigned = True
 
         print('Generated objects are:', " ".join(self.object_dict.keys()))
-
-        # TODO: add complex object initialization support
 
     # substitutes expressions for currents, like I_JJ1, into another equations
     def _substitute_element_currents(self):
@@ -83,8 +111,7 @@ class FunctionCompiler:
 
         def process_equations(sys_eq):
             sys_eq_new = [None] * len(sys_eq)
-            # substitute P(i) instead of fixed parameters
-            p = sp.symbols("P")
+            # substitute fixed parameters values
             for i, par in enumerate(self.fixed_parameter):
                 par_symbol = sp.sympify(self.fixed_param_dict[par]) # sp.Indexed(p, i + 1)
                 for j, eqn in enumerate(sys_eq):
@@ -255,7 +282,6 @@ class FunctionCompiler:
 
     def compile(self):
         self._assign_indices()
-        # TODO: add complex object initialization support
 
         s_pre = [obj.get_equation() for obj in self.object_list]
         S = [sp.sympify(0)] * self.N
@@ -376,7 +402,6 @@ class FunctionCompiler:
         diff_eq_lmbd = {}
 
         # parse equations like dy(...) = y(...)
-        # TODO add custom function evaluation
         for eqn in self.diff_eq:
             lside = eqn.lhs
             rside = eqn.rhs
@@ -384,7 +409,6 @@ class FunctionCompiler:
             diff_eq_lmbd[n_var_deriv] = sp.lambdify(args_eq, rside, modules=custom_func_dict)
 
         # parse another equations
-        # TODO add custom function evaluation
         A = self.out_A
         B = self.out_B
         B_final = [sp.lambdify(args_eq, b, modules=custom_func_dict) for b in B]
@@ -402,7 +426,6 @@ class FunctionCompiler:
             # process linear equations and find Psi_... variables
             # evaluate numeric values of A and B matrices
             # by substitution of y_i which can be here
-            # TODO add custom function evaluation
             if len(self.A_lin) != 0:
                 subst_list = []
                 for i in range(N):
