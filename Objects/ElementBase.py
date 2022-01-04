@@ -33,6 +33,11 @@ class ElementBase:
         if k1 == 0 and k2 == 0:
             self.warning("is grounded at both outputs")
 
+    def check_loc(self, loc, len_loc_required):
+        len_loc = len(loc)
+        if len_loc != len_loc_required:
+            self.error(f'has {len_loc_required} outputs, but {len_loc} were given')
+
     # get equation for this element current
     # must be overridden in a child class
     def get_equation(self):

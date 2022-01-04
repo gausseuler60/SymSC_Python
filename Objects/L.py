@@ -7,6 +7,8 @@ class L(ElementBase):
     def __init__(self, loc, val=3):
         super().__init__()
 
+        self.check_loc(loc, 2)
+
         # numeric parameters
         self.val = val
 

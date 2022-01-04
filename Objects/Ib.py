@@ -5,6 +5,8 @@ class Ib(ElementBase):
     def __init__(self, loc, val=0.75):
         super().__init__()
 
+        self.check_loc(loc, 1)
+
         # numeric parameters
         self.val = val
 

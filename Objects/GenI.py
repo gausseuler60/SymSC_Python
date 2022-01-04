@@ -5,6 +5,8 @@ class GenI(ElementBase):
     def __init__(self, loc, A, B, w, d, alR):
         super().__init__()
 
+        self.check_loc(loc, 1)
+
         # numeric parameters
         self.A = A
         self.B = B

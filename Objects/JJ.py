@@ -8,6 +8,8 @@ class JJ(ElementBase):
     def __init__(self, loc, A=1, B=0, al=1):
         super().__init__()
 
+        self.check_loc(loc, 2)
+
         # object numeric parameters
         self.A = A
         self.B = B

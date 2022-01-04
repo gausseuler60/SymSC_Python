@@ -6,6 +6,8 @@ class Pulses(ElementBase):
     def __init__(self, loc, connect='Current', type_p='Gauss', t0=50, A=1, D=15, T=500, w=1):
         super().__init__()
 
+        self.check_loc(loc, 1)
+
         # numeric parameters
         if not connect in ['Current', 'Phase']:
             raise ValueError('Connect must be "Current" or "Phase"')

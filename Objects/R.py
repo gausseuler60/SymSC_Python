@@ -5,6 +5,8 @@ class R(ElementBase):
     def __init__(self, loc, alR):
         super().__init__()
 
+        self.check_loc(loc, 2)
+
         # numeric parameters
         self.alR = alR
 
