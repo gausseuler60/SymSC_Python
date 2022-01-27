@@ -32,7 +32,6 @@ class JTL(ElementBase):
         new_names_obj = []
 
         sk = self.data_index
-        print('sk', sk)
         sk = [sk[0]] + sk[2:] + [sk[1]]
 
         # generate objects
