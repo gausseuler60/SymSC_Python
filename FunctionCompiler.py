@@ -192,7 +192,7 @@ class FunctionCompiler:
             # find coefficients before all possible terms
             for j, term in enumerate(X):
                 coef = eqn.coeff(term)
-                A[i, j] += coef
+                A[i, j] -= coef
 
             # make residual term (B), without terms which are multipliers of X
             for term in X:
