@@ -372,16 +372,16 @@ class FunctionCompiler:
 
         var_y = sp.symbols("y")
         time = sp.symbols("t")
-        N = len(y0)
+        N = self.N
 
         # arguments for lambdify
         args_eq = []
         # functions
-        for i in range(N):
+        for i in range(2 * N):
             y_i = sp.Indexed(var_y, i + 1)
             args_eq.append(y_i)
         # derivatives
-        for i in range(N):
+        for i in range(2 * N):
             y_i = sp.Indexed(var_y, i + 1)
             args_eq.append(sp.Derivative(y_i, time))
         # time
@@ -389,6 +389,8 @@ class FunctionCompiler:
         # psi_i variables from linear equations
         for psii in self.x_lin:
             args_eq.append(psii)
+
+        # print(228, len(args_eq))
 
         # custom functions for lambdify
         # all functions must be in the Functions module
@@ -418,8 +420,8 @@ class FunctionCompiler:
                 A_final[i, j] = sp.lambdify(args_eq, A[i, j], modules=custom_func_dict)
 
         def _odeint_kernel(y, t):
-            N = len(y)
-            y_result = [0] * N
+            N = self.N
+            y_result = [0] * 2 * N
             var_y = sp.symbols("y")
             time = sp.symbols("t")
 
@@ -442,7 +444,7 @@ class FunctionCompiler:
                 args = np.hstack((y, y_result, [t], psix))
                 y_result[n_deriv] = eq(*args)
 
-            args = np.hstack((y, y_result, [t]))
+            args = np.hstack((y, y_result, [t], psix))
             B_now = [i(*args) for i in B_final]
             A_now = np.zeros((A.rows, A.cols))
             for i in range(A.rows):
