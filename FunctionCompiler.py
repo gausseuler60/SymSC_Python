@@ -64,7 +64,6 @@ class FunctionCompiler:
             if n_this > pins:
                 for p in range(0, n_this - pins):
                     self.N += 1
-                    print(p, self.N)
                     new_data_index[p] = self.N
                 comp_obj.data_index.extend(new_data_index)
 
@@ -72,8 +71,10 @@ class FunctionCompiler:
         for i, comp_obj in zip(complex_obj_indices, complex_objects):
             # generate child objects for this object
             new_names_obj = comp_obj.unzip()
-            self.object_list.pop(i)
+            self.object_list[i] = None
             self.object_list.extend(new_names_obj)
+            
+        self.object_list = [obj for obj in self.object_list if not (obj is None)]
 
         self.object_dict = {obj.name: obj for obj in self.object_list}
         self._assigned = True
@@ -191,7 +192,7 @@ class FunctionCompiler:
             # find coefficients before all possible terms
             for j, term in enumerate(X):
                 coef = eqn.coeff(term)
-                A[i, j] += coef
+                A[i, j] -= coef
 
             # make residual term (B), without terms which are multipliers of X
             for term in X:

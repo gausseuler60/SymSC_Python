@@ -34,6 +34,7 @@ class ElementBase:
             self.warning("is grounded at both outputs")
 
     def check_loc(self, loc, len_loc_required):
+        return True
         len_loc = len(loc)
         if len_loc != len_loc_required:
             self.error(f'has {len_loc_required} outputs, but {len_loc} were given')
