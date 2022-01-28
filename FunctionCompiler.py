@@ -391,8 +391,6 @@ class FunctionCompiler:
         for psii in self.x_lin:
             args_eq.append(psii)
 
-        # print(228, len(args_eq))
-
         # custom functions for lambdify
         # all functions must be in the Functions module
         # and be numpy-functions (recieving numbers, not symbols, as arguments)
