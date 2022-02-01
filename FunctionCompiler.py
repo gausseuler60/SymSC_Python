@@ -427,11 +427,12 @@ class FunctionCompiler:
                 A_final[i, j] = sp.lambdify(args_eq, A[i, j], modules=custom_func_dict)
 
         # parse linear equations
-        B_lin_final = [sp.lambdify(args_eq_lin, b, modules=custom_func_dict) for b in self.B_lin]
-        A_lin_final = np.zeros_like(self.A_lin, dtype=object)
-        for i in range(A.rows):
-            for j in range(A.cols):
-                A_lin_final[i, j] = sp.lambdify(args_eq_lin, self.A_lin[i][j], modules=custom_func_dict)
+        if len(self.A_lin) != 0:
+            B_lin_final = [sp.lambdify(args_eq_lin, b, modules=custom_func_dict) for b in self.B_lin]
+            A_lin_final = np.zeros_like(self.A_lin, dtype=object)
+            for i in range(A_lin_final.shape[0]):
+                for j in range(A_lin_final.shape[1]):
+                    A_lin_final[i, j] = sp.lambdify(args_eq_lin, self.A_lin[i][j], modules=custom_func_dict)
 
         def _odeint_kernel(y, t):
             N = self.N
