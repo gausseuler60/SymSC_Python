@@ -377,16 +377,24 @@ class FunctionCompiler:
 
         # arguments for lambdify
         args_eq = []
+        args_eq_lin = []
+
         # functions
         for i in range(2 * N):
             y_i = sp.Indexed(var_y, i + 1)
             args_eq.append(y_i)
+
+        args_eq_lin = [sp.Indexed(var_y, i + 1) for i in range(N)]
+
         # derivatives
         for i in range(2 * N):
             y_i = sp.Indexed(var_y, i + 1)
             args_eq.append(sp.Derivative(y_i, time))
+
         # time
         args_eq.append(time)
+        args_eq_lin.append(time)
+
         # psi_i variables from linear equations
         for psii in self.x_lin:
             args_eq.append(psii)
@@ -418,6 +426,13 @@ class FunctionCompiler:
             for j in range(A.cols):
                 A_final[i, j] = sp.lambdify(args_eq, A[i, j], modules=custom_func_dict)
 
+        # parse linear equations
+        B_lin_final = [sp.lambdify(args_eq_lin, b, modules=custom_func_dict) for b in self.B_lin]
+        A_lin_final = np.zeros_like(self.A_lin, dtype=object)
+        for i in range(A.rows):
+            for j in range(A.cols):
+                A_lin_final[i, j] = sp.lambdify(args_eq_lin, self.A_lin[i][j], modules=custom_func_dict)
+
         def _odeint_kernel(y, t):
             N = self.N
             y_result = [0] * 2 * N
@@ -428,12 +443,14 @@ class FunctionCompiler:
             # evaluate numeric values of A and B matrices
             # by substitution of y_i which can be here
             if len(self.A_lin) != 0:
-                subst_list = []
+                lin_arg_list = []
                 for i in range(N):
-                    y_i = sp.Indexed(var_y, i + 1)
-                    subst_list.append((y_i, y[i]))
-                A_lin = [[float(elem.subs(subst_list)) for elem in row] for row in self.A_lin]
-                B_lin = [float(i.subs(subst_list)) for i in self.B_lin]
+                    # y_i = sp.Indexed(var_y, i + 1)
+                    lin_arg_list.append(y[i])
+                lin_arg_list.append(t)
+
+                A_lin = [[elem(*lin_arg_list) for elem in row] for row in A_lin_final]
+                B_lin = [i(*lin_arg_list) for i in B_lin_final]
 
                 psix = np.linalg.solve(A_lin, B_lin)
             else:
