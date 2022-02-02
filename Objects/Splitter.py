@@ -7,14 +7,13 @@ class Splitter(ElementBase):
     def __init__(self,loc):
         super().__init__()
 
-        #self.check_loc() - always return True
 
         self.loc = loc
         self.N = 4
 
 
         self.name = 'Splitter'
-        #self.description =
+        self.description = 'Splitter'
 
         self.complex = True
 
@@ -41,9 +40,9 @@ class Splitter(ElementBase):
             new_names_obj.append(new_obj)
 
 
-        add_ib(name='ibJJin', val = 0.75, data_index=[sk[3]])
-        add_ib(name='ibJJout1', val = 0.75, data_index=[sk[1]])
-        add_ib(name='ibJJout2', val = 0.75, data_index=[sk[2]])
+        add_ib(name='ibJin', val = 0.75, data_index=[sk[3]])
+        add_ib(name='ibJout1', val = 0.75, data_index=[sk[1]])
+        add_ib(name='ibJout2', val = 0.75, data_index=[sk[2]])
 
         add_JJ(name='Jin', A = 6, B = 0, al = 1, data_index=[sk[3], 0])
         add_JJ(name='Jout1', A=2, B=0, al=1, data_index=[sk[1], 0])
