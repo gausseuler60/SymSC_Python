@@ -49,17 +49,17 @@ class MDriver(ElementBase):
 
         add_ib(name='Ib', val = 2.77, data_index=[sk[4]])
 
-        add_JJ(name='Jin', A=2.01, B = 0, al = 1, data_index=[sk[0], 0])
+        add_JJ(name='Jin', A=2.01, B = 0, al = 1, data_index=[sk[2], 0])
         add_JJ(name='Jout', A=2.01, B=0, al=1, data_index=[sk[6], 0])
 
-        add_L(name='Lin', val = 0.75, data_index=[sk[2], sk[1]])
-        add_L(name='L1', val = 0.05, data_index=[sk[1],sk[0]])
-        add_L(name='L2', val = 0.6, data_index=[sk[1], sk[3]])
+        add_L(name='Lin', val = 0.75, data_index=[sk[0], sk[7]])
+        add_L(name='L1', val = 0.05, data_index=[sk[7], sk[2]])
+        add_L(name='L2', val = 0.6, data_index=[sk[7], sk[3]])
         add_L(name='L3', val = 0.05, data_index=[sk[4], sk[3]])
         add_L(name='L4', val = 0.62, data_index=[sk[3], sk[5]])
         add_L(name='L5', val = 0.05, data_index=[sk[5], sk[6]])
-        add_L(name='Lout', val = 0.6, data_index=[sk[5], sk[7]])
+        add_L(name='Lout', val = 0.6, data_index=[sk[5], sk[1]])
 
-        add_R(name='R', alR=1.5, data_index=[sk[7], 0])
+        add_R(name='R', alR=1.5, data_index=[sk[1], 0])
 
         return new_names_obj
