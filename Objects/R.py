@@ -1,74 +1,47 @@
-from Objects.ElementBase import *
+import numpy as np
+from scipy.integrate import simpson
+from Objects.ElementBase import ElementBase
 
 
 class R(ElementBase):
-    def __init__(self, loc, alR):
+    def __init__(self, loc, r):
         super().__init__()
-
-        self.check_loc(loc, 2)
-
-        # numeric parameters
-        self.alR = alR
-
         self.loc = loc
-        self.name = "R"
-        self.order = 1
-        self.description = "Resistor"
+        self.r = r
 
+        self.name = 'R'
         self.complex = False
 
-    def get_equation(self):
-        k1, k2 = self.data_index
+        self.contains_current = True
+        self.contains_variable = False
 
-        if k1 < 0 or k2 < 0:
-            self.error("is connected to a node with a negative index")
+    def get_matrix_stamp(self, h):
+        R = self.r
 
-        if k1 + k2 == 0:
-            self.warning("is grounded at both outputs")
-
-        time = sp.symbols("t")
-        I_n = self.var_current()
-
-        if k1 == 0 or k2 == 0:
-            kn = k1 + k2
-            y_kn = sp.Indexed(sp.symbols("y"), kn)
-
-            Ir = self.symbol_attribute("alR") * sp.Derivative(y_kn, time)
-
-            final_equation = sp.Eq(I_n, Ir if k2 == 0 else -Ir)
-
+        if self.loc[0] == 0:  # no V+
+            A = np.array([[0, -1],
+                          [-1, -R]])
+        elif self.loc[1] == 0:  # no V-
+            A = np.array([[0, 1],
+                          [1, -R]])
         else:
-            y_kn1 = sp.Indexed(sp.symbols("y"), k1)
-            y_kn2 = sp.Indexed(sp.symbols("y"), k2)
+            A = np.array([[0, 0,  1],
+                          [0, 0, -1],
+                          [1, -1, -R]])
 
-            Ir = self.symbol_attribute("alR") * (sp.Derivative(y_kn1, time) - sp.Derivative(y_kn2, time))
+        return A
 
-            final_equation = sp.Eq(I_n, Ir)
+    def get_right_side(self, sol, i, h):
+        return np.zeros(2) if 0 in self.data_index else np.zeros(3)
 
-        return final_equation
+    def get_data(self, kind, t, sol):
+        if kind == 'P':  # phi(t) = int_0^t V(t) dt
+            new_data = np.zeros_like(t)
+            volt = super().get_data('I', t, sol)
+            for i, ti in enumerate(t):
+                new_data[i] = simpson(volt[:i+1], t[:i+1])
+            return new_data
+        else:
+            return super().get_data(kind, t, sol)
 
-    def get_data(self, kind, t, y):
-        if kind == 'P':
-            return super().get_data(kind, t, y)
 
-        elif kind == 'V':
-            data1 = t
-            if self.data_index[0] != 0 and self.data_index[1] != 0:
-                pre_data_0 = y[:, self.data_index[0] - 1] - y[:, self.data_index[1] - 1]
-            else:
-                if self.data_index[0] == 0:
-                    pre_data_0 = y[:, self.data_index[1] - 1]
-                else:
-                    pre_data_0 = y[:, self.data_index[0] - 1]
-
-            dt = data1[1] - data1[0]
-            pre_data_1 = np.zeros_like(t)
-
-            for j in range(1, len(t)):
-                pre_data_1[j] = (pre_data_0[j] - pre_data_1[j]) / dt
-
-            return np.column_stack((t, pre_data_1))
-
-        elif kind == 'I':
-            t, data = self.get_data('V', t, y)
-            return np.column_stack((t, data * self.alR))

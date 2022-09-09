@@ -1,70 +1,64 @@
-from Objects.ElementBase import ElementBase
-import sympy as sp
 import numpy as np
+from scipy.integrate import simpson
+from Objects.ElementBase import ElementBase
 
 
 class C(ElementBase):
-    def __init__(self, loc, C):
+    def __init__(self, loc, c):
         super().__init__()
-
-        self.check_loc(loc, 2)
-
-        # numeric parameters
-        self.C = C
-
         self.loc = loc
-        self.name = "C"
-        self.order = 2
-        self.description = "Capacitor"
+        self.c = c
 
+        self.name = 'C'
         self.complex = False
 
-    def get_equation(self):
-        k1, k2 = self.data_index
+        self.contains_current = True
+        self.contains_variable = False
 
-        self.check_contacts(k1, k2)
+    def get_matrix_stamp(self, h):
+        C = self.c
+        loc = self.data_index
 
-        time = sp.symbols("t")
-        I_n = self.var_current()
-
-        if k1 == 0 or k2 == 0:
-            kn = k1 + k2
-            y_kn = sp.Indexed(sp.symbols("y"), kn)
-
-            Ic = self.symbol_attribute('C') * sp.Derivative(y_kn, time)
-
-            final_equation = sp.Eq(I_n, Ic if k2 == 0 else -Ic)
+        if loc[0] == 0:  # no V+
+            A = np.array([[0, -1],
+                         [-1, -(2 * h) / (3 * C)]])
+        elif loc[1] == 0:  # no V-
+            A = np.array([[0, 1],
+                         [1, -(2 * h) / (3 * C)]])
         else:
-            y_kn1 = sp.Indexed(sp.symbols("y"), k1)
-            y_kn2 = sp.Indexed(sp.symbols("y"), k2)
+            A = np.array([[0, 0, 1],
+                          [0, 0, -1],
+                          [1, -1, -(2 * h) / (3 * C)]])
 
-            Ic = self.symbol_attribute('C') * (sp.Derivative(y_kn1, time) - sp.Derivative(y_kn2, time))
+        return A
 
-            final_equation = sp.Eq(I_n, Ic)
+    def get_right_side(self, sol, i, h):
+        index_voltage = self.data_index
 
-        return final_equation
+        if index_voltage[0] == 0:   # no V+
+            vn_1 = - sol[index_voltage[1] - 1, i - 1] if i != 0 else 0  # V+ - V-
+            vn_2 = - sol[index_voltage[1] - 1, i - 2] if i > 1 else 0  # V+ - V-
+        elif index_voltage[1] == 0:  # no V-
+            vn_1 = sol[index_voltage[0] - 1, i - 1] if i != 0 else 0  # V+ - V-
+            vn_2 = sol[index_voltage[0] - 1, i - 2] if i > 1 else 0  # V+ - V-
+        else:
+            vn_1 = sol[index_voltage[0] - 1, i - 1] - sol[index_voltage[1] - 1, i - 1] if i != 0 else 0  # V+ - V-
+            vn_2 = sol[index_voltage[0] - 1, i - 2] - sol[index_voltage[1] - 1, i - 2] if i > 1 else 0  # V+ - V-
 
-    def get_data(self, kind, t, y):
-        if kind in ['P', 'V']:
-            return super().get_data(kind, t, y)
-        elif kind == 'I':
-            n = y.shape[1] // 2
+        rhs = (4 / 3) * vn_1 - (1 / 3) * vn_2
 
-            data1 = t
-            if self.data_index[0] != 0 and self.data_index[1] != 0:
-                pre_data_1 = y[:, n + self.data_index[0] - 1] - y[:, n + self.data_index[1] - 1]
-            else:
-                if self.data_index[0] == 0:
-                    pre_data_1 = y[:, n + self.data_index[1] - 1]
-                else:
-                    pre_data_1 = y[:, n + self.data_index[0] - 1]
+        res = np.zeros(2 if 0 in self.data_index else 3)
+        res[-1] = rhs
 
-            dt = data1[1] - data1[0]
-            pre_data_2 = np.zeros_like(t)
+        return res
 
-            for j in range(1, len(t)):
-                pre_data_2[j] = (pre_data_1[j] - pre_data_1[j]) / dt
+    def get_data(self, kind, t, sol):
+        if kind == 'P':  # phi(t) = int_0^t V(t) dt
+            new_data = np.zeros_like(t)
+            volt = super().get_data('I', t, sol)
+            for i, ti in enumerate(t):
+                new_data[i] = simpson(volt[:i+1], t[:i+1])
+            return new_data
+        else:
+            return super().get_data(kind, t, sol)
 
-            values = self.C * pre_data_2
-
-            return np.column_stack((t, values))

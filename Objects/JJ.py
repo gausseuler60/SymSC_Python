@@ -1,108 +1,81 @@
 import numpy as np
-from scipy.integrate import quad
-
-from Objects.ElementBase import *
+from Objects.ElementBase import ElementBase
 
 
 class JJ(ElementBase):
-    def __init__(self, loc, A=1, B=0, al=1):
+    def __init__(self, loc, c, r, A, B=1):
+        # TODO: add B support
         super().__init__()
-
-        self.check_loc(loc, 2)
-
-        # object numeric parameters
-        self.A = A
-        self.B = B
-        self.al = al
-
         self.loc = loc
-        self.order = 2
-        self.description = "Josephson junction"
-        self.name = "JJ"
+        self.c = c
+        self.r = r
+        self.A = A
 
+        self.name = 'JJ'
         self.complex = False
 
-    def get_equation(self):
-        k1, k2 = self.data_index
+        self.contains_current = True
+        self.contains_variable = True
 
-        self.check_contacts(k1, k2)
+    def get_matrix_stamp(self, h):
+        R = self.r
+        C = self.c
 
-        N_ = sp.symbols("N")
-        time = sp.symbols("t")
-
-        if k1 == 0 or k2 == 0:
-            # only one variable will be
-            k = k1 + k2
-            kn = N_ + k
-            y_kn = sp.Indexed(sp.symbols("y"), kn)
-            y_k = sp.Indexed(sp.symbols("y"), k)
-            Ic = sp.Derivative(y_kn, time)
-            Ir = self.symbol_attribute('al') * sp.Derivative(y_k, time)
-            Is = (self.symbol_attribute('A') * sp.sin(y_k) if self.A != 0 else 0) + \
-                 (self.symbol_attribute('B') * sp.sin(2 * y_k) if self.B != 0 else 0)
+        if self.loc[0] == 0:  # no V+
+            A = np.array([[0, 0, -1],
+                          [-1, -3 * R / (2 * h), 0],
+                          [-(C + 1) / R, 0, -1]])
+        elif self.loc[1] == 0:  # no V-
+            A = np.array([[0, 0, 1],
+                          [1, -3 * R / (2 * h), 0],
+                          [(C + 1) / R, 0, -1]])
         else:
-            # two variables will be
-            kn1 = N_ + k1
-            kn2 = N_ + k2
-            y_kn1 = sp.Indexed(sp.symbols("y"), kn1)
-            y_kn2 = sp.Indexed(sp.symbols("y"), kn2)
-            y_k1 = sp.Indexed(sp.symbols("y"), k1)
-            y_k2 = sp.Indexed(sp.symbols("y"), k2)
-            Ic = sp.Derivative(y_kn1, time) - sp.Derivative(y_kn2, time)
-            diff_deriv = sp.Derivative(y_k1, time) - sp.Derivative(y_k2, time)
-            diff_y = y_k1 - y_k2
-            Ir = self.symbol_attribute('al') * diff_deriv
-            Is = (self.symbol_attribute('A') * sp.sin(diff_y) if self.A != 0 else 0) + \
-                 (self.symbol_attribute('B') * sp.sin(2 * diff_y) if self.B != 0 else 0)
+            print(self.name, R, C, h)
+            A = np.array([[0, 0, 0, 1],
+                          [0, 0, 0, -1],
+                          [1, -1, -3 * R / (2 * h), 0],
+                          [(C + 1) / R, -(C + 1) / R, 0, -1]])
 
-        symbol_current = self.var_current()
-        final_equation = sp.Eq(symbol_current, Ic + Ir + Is)
+        return A
 
-        return final_equation
+    def get_right_side(self, sol, i, h):
+        index_voltage = self.data_index
+        index_phase = self.var_index
 
-    def get_data(self, kind, t, y):
-        if kind == 'I':
-            n = y.shape[1] // 2
+        fn_1 = sol[index_phase, i - 1] if i != 0 else 0  # phi+ - phi-
+        fn_2 = sol[index_phase, i - 2] if i > 1 else 0  # phi+ - phi-
 
-            data1 = t
-            if self.data_index[0] != 0 and self.data_index[1] != 0:
-                pre_data_0 = y[:, self.data_index[0] - 1] - y[:, self.data_index[1] - 1]
-                pre_data_1 = y[:, n + self.data_index[0] - 1] - y[:, n + self.data_index[1] - 1]
-            else:
-                if self.data_index[0] == 0:
-                    pre_data_0 = y[:, self.data_index[1] - 1]
-                    pre_data_1 = y[:, n + self.data_index[1] - 1]
-                else:
-                    pre_data_0 = y[:, self.data_index[0] - 1]
-                    pre_data_1 = y[:, n + self.data_index[0] - 1]
+        if self.data_index[0] == 0:   # no V+
+            vn_1 = - sol[index_voltage[1] - 1, i - 1] if i != 0 else 0  # V+ - V-
+            vn_2 = - sol[index_voltage[1] - 1, i - 2] if i > 1 else 0  # V+ - V-
+            vn_3 = - sol[index_voltage[1] - 1, i - 3] if i > 2 else 0  # V+ - V-
+        elif self.data_index[1] == 0:  # no V-
+            vn_1 = sol[index_voltage[0] - 1, i - 1] if i != 0 else 0  # V+ - V-
+            vn_2 = sol[index_voltage[0] - 1, i - 2] if i > 1 else 0  # V+ - V-
+            vn_3 = sol[index_voltage[0] - 1, i - 3] if i > 2 else 0  # V+ - V-
+        else:
+            vn_1 = sol[index_voltage[0] - 1, i - 1] - sol[index_voltage[1] - 1, i - 1] if i != 0 else 0  # V+ - V-
+            vn_2 = sol[index_voltage[0] - 1, i - 2] - sol[index_voltage[1] - 1, i - 2] if i > 1 else 0  # V+ - V-
+            vn_3 = sol[index_voltage[0] - 1, i - 3] - sol[index_voltage[1] - 1, i - 3] if i > 2 else 0  # V+ - V-
 
-            dt = data1[1] - data1[0]
-            pre_data_2 = np.zeros_like(t)
+        v0 = (5 / 2) * vn_1 - 2 * vn_2 + (1 / 2) * vn_3
+        phi_0 = (4 / 3) * fn_1 - (1 / 3) * fn_2 + (2 * h / 3) * v0
+        # print('V0', v0, 'phi_0', phi_0, 'vn-1', vn_1, 'vn_2', vn_2, 'vn-3', vn_3, 'fn_1', fn_1, 'fn_2', fn_2)
 
-            pre_data_2[0] = pre_data_1[0] / dt
-            for j in range(1, len(t)):
-                pre_data_2[j] = (pre_data_1[j] - pre_data_1[j]) / dt
+        A = self.A
+        C = self.c
+        R = self.r
 
-            values = pre_data_2 + self.al * pre_data_1 + self.A * np.sin(pre_data_0) + self.B * np.sin(pre_data_0)
+        rhs = R * (-(2 / h) * fn_1 + (1 / (2 * h)) * fn_2)
+        Is = -(A * np.sin(phi_0) + C / R * (4 / 3 * vn_1 - 1 / 3 * vn_2))
+        B = np.zeros(3) if 0 in self.loc else np.zeros(4)
+        B[-1] = Is
+        B[-2] = rhs
+        return B
 
-            return np.column_stack((t, values))
-
-        elif kind == 'Edis':
-            data1 = t
-            if self.data_index[0] != 0 and self.data_index[1] != 0:
-                pre_data_2 = self.al * (y[:, self.data_index[0] - 1] - y[:, self.data_index[1] - 1]) ** 2
-            else:
-                if self.data_index[0] == 0:
-                    pre_data_2 = self.al * (y[:, self.data_index[1] - 1]) ** 2
-                else:
-                    pre_data_2 = self.al * (y[:, self.data_index[1] - 1]) ** 2
-
-            data = np.zeros_like(data1)
-            data[0] = pre_data_2[0]
-            for k in range(1, len(data1)):
-                data[k] = quad(t[:k], pre_data_2[:k])[0]
-
-            return np.column_stack((t, data))
-
-        else:  # 'P', 'V'
-            return super().get_data(kind, t, y)
+    def get_data(self, kind, t, sol):
+        if kind == 'P':
+            phase_index = self.var_index
+            return sol[phase_index, :]
+        else:
+            return super().get_data(kind, t, sol)

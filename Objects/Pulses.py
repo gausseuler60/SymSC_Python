@@ -1,19 +1,20 @@
+import numpy as np
 from Objects.ElementBase import ElementBase
-import sympy as sp
+from Functions import gauss_I
 
 
 class Pulses(ElementBase):
     def __init__(self, loc, connect='Current', type_p='Gauss', t0=50, A=1, D=15, T=500, w=1):
         super().__init__()
-
-        self.check_loc(loc, 1)
+        if len(loc) == 1:
+            loc = [loc[0], 0]
 
         # numeric parameters
-        if not connect in ['Current', 'Phase']:
+        if connect not in ['Current', 'Phase']:
             raise ValueError('Connect must be "Current" or "Phase"')
         self.connect = connect
 
-        if not type_p in ['Gauss', 'Sin']:
+        if type_p not in ['Gauss', 'Sin']:
             raise ValueError('type_p must be "Gauss" or "Sin"')
         self.type_p = type_p
 
@@ -25,28 +26,40 @@ class Pulses(ElementBase):
 
         self.loc = loc
         self.name = "Pulses"
-        self.order = 0
-        self.description = "Pulse generator"
-
         self.complex = False
 
-    def get_equation(self):
-        sA = self.symbol_attribute('A')
-        time = sp.symbols("t")
-        I_n = self.var_current()
+        self.contains_current = False
+        self.contains_variable = False
 
+    def get_matrix_stamp(self, h):
+        return np.zeros((2, 2)) if 0 in self.loc else np.zeros((1, 1))
+
+    def get_right_side(self, sol, i, h):
+        t = i * h
+
+        sA = self.A
         if self.connect == 'Current' and self.type_p == 'Gauss':
-            st0 = self.symbol_attribute('t0')
-            sD = self.symbol_attribute('D')
-            sT = self.symbol_attribute('T')
-
-            gauss_I_func = sp.Function('gauss_I')
-            gauss_I = gauss_I_func(time, st0, sA, sD, sT)
-
-            final_equation = sp.Eq(I_n, -gauss_I)
-
+            st0 = self.t0
+            sD = self.D
+            sT = self.T
+            val = gauss_I(t, st0, sA, sD, sT)
         else:
-            sw = self.symbol_attribute('w')
-            final_equation = sp.Eq(I_n, -sA * sp.sin(sw * time))
+            sw = self.w
+            val = np.sin(sw * t)
 
-        return final_equation
+        if self.loc[0] == 0:  # no V+
+            return np.array([-val])
+        elif self.loc[1] == 0:  # no V-
+            return np.array([val])
+        else:
+            return np.array([-val, val])
+
+    def get_data(self, kind, t, sol):
+        if kind == 'I':
+            t = np.array(t)
+            if self.connect == 'Current' and self.type_p == 'Gauss':
+                return np.array([gauss_I(i, self.t0, self.A, self.D, self.T) for i in t])
+            else:
+                return self.A * np.sin(t * self.w)
+        else:
+            raise ValueError('Only I(t) data are avaliable for current sources')

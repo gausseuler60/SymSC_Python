@@ -1,44 +1,53 @@
 import numpy as np
-
-from Objects.ElementBase import *
+from Objects.ElementBase import ElementBase
 
 
 class L(ElementBase):
-    def __init__(self, loc, val=3):
+    def __init__(self, loc, val):
         super().__init__()
-
-        self.check_loc(loc, 2)
-
-        # numeric parameters
+        self.loc = loc
         self.val = val
 
-        self.loc = loc
-        self.order = 0
-        self.description = "Inductor"
-        self.name = "L"
-
+        self.name = 'L'
         self.complex = False
 
-    def get_equation(self):
-        k1, k2 = self.data_index
+        self.contains_current = True
+        self.contains_variable = False
 
-        y_k1 = sp.Indexed(sp.symbols("y"), k1)
-        y_k2 = sp.Indexed(sp.symbols("y"), k2)
+    def get_matrix_stamp(self, h):
+        L = self.val
+        loc = self.data_index
 
-        if k1 == 0:
-            S = -y_k2 / self.symbol_attribute('val')
-        elif k2 == 0:
-            S = y_k1 / self.symbol_attribute('val')
+        if loc[0] == 0:  # no V+
+            A = np.array([[0, -1],
+                         [-1, -(3 * L) / (2 * h)]])
+        elif loc[1] == 0:  # no V-
+            A = np.array([[0, 1],
+                          [1, -(3 * L) / (2 * h)]])
         else:
-            S = (y_k1 - y_k2) / self.symbol_attribute('val')
+            A = np.array([[0, 0, 1],
+                          [0, 0, -1],
+                          [1, -1, -(3 * L) / (2 * h)]])
 
-        symbol_current = self.var_current()
-        final_equation = sp.Eq(symbol_current, S)
-        return final_equation
+        return A
 
-    def get_data(self, kind, t, y):
-        if kind == 'I':
-            p = super().get_data('P', t, y)
-            return np.column_stack((p[:, 0], p[:, 1] / self.val))
+    def get_right_side(self, sol, i, h):
+        loc = self.data_index
+        index_current = self.current_index
+        L = self.val
+
+        In_1 = sol[index_current, i - 1] if i > 0 else 0
+        In_2 = sol[index_current, i - 2] if i > 1 else 0
+
+        curr = -(2 * L / h) * In_1 + (L / (2 * h)) * In_2
+        if 0 in loc:
+            return np.array([0, curr])
         else:
-            return super().get_data(kind, t, y)
+            return np.array([0, 0, curr])
+
+    def get_data(self, kind, t, sol):
+        if kind == 'P':
+            L = self.val
+            return super().get_data('I', t, sol) * L
+        else:
+            return super().get_data(kind, t, sol)
