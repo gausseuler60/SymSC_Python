@@ -67,7 +67,7 @@ class JJ(ElementBase):
         R = self.r
 
         rhs = R * (-(2 / h) * fn_1 + (1 / (2 * h)) * fn_2)
-        Is = -(A * np.sin(phi_0) + C / R * (4 / 3 * vn_1 - 1 / 3 * vn_2))
+        Is = -A * np.sin(phi_0) + C / R * (4 / 3 * vn_1 - 1 / 3 * vn_2)
         B = np.zeros(3) if 0 in self.loc else np.zeros(4)
         B[-1] = Is
         B[-2] = rhs
