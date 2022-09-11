@@ -33,13 +33,11 @@ class TFF(ElementBase):
         def add_L(name, val, loc):
             new_obj = L(loc=loc, val=val)
             new_obj.name = f'{self.name}_{name}'
-            new_obj.loc = loc
             new_names_obj.append(new_obj)
             
         def add_R(name,r,loc):
             new_obj = R(loc=loc, r=r)
             new_obj.name = f'{self.name}_{name}'
-            new_obj.loc = loc
             new_names_obj.append(new_obj)
 
         add_JJ(name='J2', c=1,r=1,A=1, B=0, loc=[sk[3], sk[4]])

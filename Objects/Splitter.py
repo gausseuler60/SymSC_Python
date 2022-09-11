@@ -28,13 +28,11 @@ class Splitter(ElementBase):
         def add_ib(name, val, loc):
             new_obj = Ib(loc=loc, val=val)
             new_obj.name = f'{self.name}_{name}'
-            new_obj.loc = loc
             new_names_obj.append(new_obj)
 
         def add_L(name, val, loc):
             new_obj = L(loc=loc, val=val)
             new_obj.name = f'{self.name}_{name}'
-            new_obj.loc = loc
             new_names_obj.append(new_obj)
 
         add_ib(name='ibJin', val=0.75, loc=[sk[3]])

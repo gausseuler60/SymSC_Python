@@ -30,7 +30,7 @@ class JJ(ElementBase):
                           [1, -3 * R / (2 * h), 0],
                           [(C + 1) / R, 0, -1]])
         else:
-            print(self.name, R, C, h)
+
             A = np.array([[0, 0, 0, 1],
                           [0, 0, 0, -1],
                           [1, -1, -3 * R / (2 * h), 0],

@@ -21,7 +21,7 @@ class Pulse_Merger(ElementBase):
         new_names_obj = []
 
         def add_JJ(name, c, r, A, B, loc):
-            new_obj = JJ(loc=loc, A=A, B=B, r=al, c=1)
+            new_obj = JJ(loc=loc, A=A, B=B, r=r, c=1)
             new_obj.name = f'{self.name}_{name}'
             new_names_obj.append(new_obj)
 

@@ -28,13 +28,11 @@ class OR(ElementBase):
         def add_ib(name, val, loc):
             new_obj = Ib(loc=loc, val=val)
             new_obj.name = f'{self.name}_{name}'
-            new_obj.loc = loc
             new_names_obj.append(new_obj)
 
         def add_L(name, val, loc):
             new_obj = L(loc=loc, val=val)
             new_obj.name = f'{self.name}_{name}'
-            new_obj.loc = loc
             new_names_obj.append(new_obj)
 
         add_ib(name='Ib1', val=1.408, loc=[sk[8]])

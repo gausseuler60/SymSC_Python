@@ -143,9 +143,9 @@ class FunctionCompiler:
         size = self.m + self.n + self.i
         final_A = np.zeros((size, size))
         for obj, matr in zip(self.object_list, self._left_matrix_list):
-            print(obj.name, obj.data_index)
             # define indices into what we must place matrix elements
             this_obj_row_indices = self._get_obj_row_indices(obj)
+            obj.row_indices = this_obj_row_indices
             # now place them:
             for i in range(len(this_obj_row_indices)):
                 for j in range(len(this_obj_row_indices)):
@@ -162,19 +162,19 @@ class FunctionCompiler:
         if y0 is None:
             y0 = np.zeros(size)
 
-        n_time_steps = int(t_max / h)
-        sol = np.zeros((size, n_time_steps + 1))
-        time = np.zeros(n_time_steps + 1)
+        n_time_steps = int(np.ceil(t_max / h)) + 1
+        sol = np.zeros((size, n_time_steps))
+        time = np.zeros(n_time_steps)
         sol[:, 0] = y0
 
         i_step = 0
 
-        while i_step <= n_time_steps:
+        while i_step < n_time_steps:
             # print(i_step, n_time_steps)
             B_this_step = np.zeros(size)
             for obj in self.object_list:
                 b = obj.get_right_side(sol, i_step, h)
-                indices = self._get_obj_row_indices(obj)
+                indices = obj.row_indices  # self._get_obj_row_indices(obj)
                 for bi, idx in zip(b, indices):
                     B_this_step[idx] += bi
             # print(B_this_step)
