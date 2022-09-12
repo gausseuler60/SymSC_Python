@@ -2,7 +2,7 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class NIJTL(ComplexObjectBase):
-    def __init__(self, loc, N, ib_val=0.75, jj_c = 1, jj_r = 1, jj_a=1, jj_b=0, jj_c_c = 1, jj_c_r = 1, jj_c_a=0.7, jj_c_b=0):
+    def __init__(self, loc, N, ib_val=0.75, jj_c=1, jj_r=1, jj_a=1, jj_b=0, jj_c_c=1, jj_c_r=1, jj_c_a=0.7, jj_c_b=0):
         super().__init__(loc=loc)
 
         # numeric parameters

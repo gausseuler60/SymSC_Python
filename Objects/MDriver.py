@@ -12,8 +12,8 @@ class MDriver(ComplexObjectBase):
     def create_elements(self, sk):
         self.add_ib(name='Ib', val=2.77, loc=[sk[4]])
 
-        self.add_JJ(name='Jin', c=1, r=1,A=2.01, B=0, loc=[sk[2], 0])
-        self.add_JJ(name='Jout', c=1, r=1,A=2.01, B=0, loc=[sk[6], 0])
+        self.add_JJ(name='Jin', c=1, r=1, A=2.01, B=0, loc=[sk[2], 0])
+        self.add_JJ(name='Jout', c=1, r=1, A=2.01, B=0, loc=[sk[6], 0])
 
         self.add_L(name='Lin', val=0.75, loc=[sk[0], sk[7]])
         self.add_L(name='L1', val=0.05, loc=[sk[7], sk[2]])

@@ -22,5 +22,5 @@ class Async_AND(ComplexObjectBase):
         self.add_L(name='L1', val=4.545, loc=[sk[0], sk[3]])
         self.add_L(name='L2', val=4.545, loc=[sk[1], sk[5]])
 
-        self.add_R(name='RD1', r = 0.279, loc=[sk[3], sk[4]])
-        self.add_R(name='RD2', r = 0.279, loc=[sk[5], sk[6]])
+        self.add_R(name='RD1', r=0.279, loc=[sk[3], sk[4]])
+        self.add_R(name='RD2', r=0.279, loc=[sk[5], sk[6]])

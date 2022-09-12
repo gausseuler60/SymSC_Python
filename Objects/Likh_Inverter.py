@@ -25,4 +25,4 @@ class Likh_Inverter(ComplexObjectBase):
         self.add_L(name='L5', val=0.1, loc=[sk[2], sk[5]])
         self.add_L(name='L6', val=0.1, loc=[sk[6], sk[3]])
 
-        self.add_R(name='R', r = 0.2, loc=[sk[8], 0])
+        self.add_R(name='R', r=0.2, loc=[sk[8], 0])

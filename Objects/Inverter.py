@@ -23,14 +23,14 @@ class Inverter(ComplexObjectBase):
         self.add_ib(name='I1', val=1.24, loc=[sk[15]])
         self.add_ib(name='I2', val=1.48, loc=[sk[24]])
 
-        self.add_JJ(name='J1', A=2.01, B=0, al=1, loc=[sk[3], sk[4]])
-        self.add_JJ(name='J2', A=2.48, B=0, al=1, loc=[sk[7], sk[8]])
-        self.add_JJ(name='J3', A=1.12, B=0, al=1, loc=[sk[7], sk[9]])
-        self.add_JJ(name='J4', A=1.4, B=0, al=1, loc=[sk[10], sk[18]])
-        self.add_JJ(name='J5', A=2.35, B=0, al=1, loc=[sk[13], sk[19]])
-        self.add_JJ(name='J6', A=2.84, B=0, al=1, loc=[sk[16], sk[17]])
-        self.add_JJ(name='J7', A=2.35, B=0, al=1, loc=[sk[21], sk[22]])
-        self.add_JJ(name='J8', A=2.11, B=0, al=1, loc=[sk[25], sk[26]])
+        self.add_JJ(name='J1', A=2.01, B=0, r=1, c=1, loc=[sk[3], sk[4]])
+        self.add_JJ(name='J2', A=2.48, B=0, r=1, c=1, loc=[sk[7], sk[8]])
+        self.add_JJ(name='J3', A=1.12, B=0, r=1, c=1, loc=[sk[7], sk[9]])
+        self.add_JJ(name='J4', A=1.4, B=0, r=1, c=1, loc=[sk[10], sk[18]])
+        self.add_JJ(name='J5', A=2.35, B=0, r=1, c=1, loc=[sk[13], sk[19]])
+        self.add_JJ(name='J6', A=2.84, B=0, r=1, c=1, loc=[sk[16], sk[17]])
+        self.add_JJ(name='J7', A=2.35, B=0, r=1, c=1, loc=[sk[21], sk[22]])
+        self.add_JJ(name='J8', A=2.11, B=0, r=1, c=1, loc=[sk[25], sk[26]])
 
         self.add_L(name='L1', val=0.011, loc=[sk[4], 0])
         self.add_L(name='L2', val=0.75, loc=[sk[0], sk[3]])
@@ -58,6 +58,6 @@ class Inverter(ComplexObjectBase):
         self.add_L(name='L24', val=0.9, loc=[sk[25], sk[2]])
 
         self.add_Pulses(name='D', loc=[sk[5]], connect=self.connect, type_p=self.type_p, t0=self.t0, A=self.A, D=self.D,
-                        T=self.T, w=self.W)
+                        T=self.T, w=self.w)
 
-        self.add_R(name='R', alR = 5, loc=[sk[6], 0])
+        self.add_R(name='R', r=5, loc=[sk[6], 0])

@@ -15,31 +15,31 @@ class L(ElementBase):
         self.contains_variable = False
 
     def get_matrix_stamp(self, h):
-        L = self.val
+        l = self.val
         loc = self.data_index
 
         if loc[0] == 0:  # no V+
             A = np.array([[0, -1],
-                         [-1, -(3 * L) / (2 * h)]])
+                          [-1, -(3 * l) / (2 * h)]])
         elif loc[1] == 0:  # no V-
             A = np.array([[0, 1],
-                          [1, -(3 * L) / (2 * h)]])
+                          [1, -(3 * l) / (2 * h)]])
         else:
             A = np.array([[0, 0, 1],
                           [0, 0, -1],
-                          [1, -1, -(3 * L) / (2 * h)]])
+                          [1, -1, -(3 * l) / (2 * h)]])
 
         return A
 
     def get_right_side(self, sol, i, h):
         loc = self.data_index
         index_current = self.current_index
-        L = self.val
+        l = self.val
 
         In_1 = sol[index_current, i - 1] if i > 0 else 0
         In_2 = sol[index_current, i - 2] if i > 1 else 0
 
-        curr = -(2 * L / h) * In_1 + (L / (2 * h)) * In_2
+        curr = -(2 * l / h) * In_1 + (l / (2 * h)) * In_2
         if 0 in loc:
             return np.array([0, curr])
         else:
@@ -47,7 +47,7 @@ class L(ElementBase):
 
     def get_data(self, kind, t, sol):
         if kind == 'P':
-            L = self.val
-            return super().get_data('I', t, sol) * L
+            l = self.val
+            return super().get_data('I', t, sol) * l
         else:
             return super().get_data(kind, t, sol)

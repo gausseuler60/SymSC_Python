@@ -16,18 +16,18 @@ class R(ElementBase):
         self.contains_variable = False
 
     def get_matrix_stamp(self, h):
-        R = self.r
+        r = self.r
 
         if self.loc[0] == 0:  # no V+
             A = np.array([[0, -1],
-                          [-1, -R]])
+                          [-1, -r]])
         elif self.loc[1] == 0:  # no V-
             A = np.array([[0, 1],
-                          [1, -R]])
+                          [1, -r]])
         else:
             A = np.array([[0, 0,  1],
                           [0, 0, -1],
-                          [1, -1, -R]])
+                          [1, -1, -r]])
 
         return A
 

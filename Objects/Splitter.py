@@ -18,6 +18,6 @@ class Splitter(ComplexObjectBase):
         self.add_JJ(name='Jout1', c=1, r=1, A=1, B=0, loc=[sk[1], 0])
         self.add_JJ(name='Jout2', c=1, r=1, A=1, B=0, loc=[sk[2], 0])
 
-        self.add_L(name='Lin', val=1, loc=[sk[0],sk[3]])
+        self.add_L(name='Lin', val=1, loc=[sk[0], sk[3]])
         self.add_L(name='Lout1', val=3.7, loc=[sk[3], sk[1]])
         self.add_L(name='Lout2', val=3.7, loc=[sk[3], sk[2]])

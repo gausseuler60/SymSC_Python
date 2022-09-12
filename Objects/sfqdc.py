@@ -1,5 +1,6 @@
 from Objects.ComplexObjectBase import ComplexObjectBase
 
+
 class sfqdc(ComplexObjectBase):
     def __init__(self, loc):
         super().__init__(loc=loc)
@@ -18,11 +19,11 @@ class sfqdc(ComplexObjectBase):
 
         self.add_L(name='L1', val=2, loc=[sk[0], sk[3]])
         self.add_L(name='L2', val=2, loc=[sk[1], sk[4]])
-        
+
         self.add_L(name='L3', val=4.6, loc=[sk[6], sk[7]])
         self.add_L(name='L4', val=4.6, loc=[sk[5], sk[7]])
-        
+
         self.add_ib(name='Ib1', val=0.8, loc=[sk[6]])
         self.add_ib(name='Ib2', val=0.64, loc=[sk[2]])
 
-        self.add_R(name='R1', r = 0.5, loc=[sk[7], 0])
+        self.add_R(name='R1', r=0.5, loc=[sk[7], 0])

@@ -2,7 +2,7 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class JTL(ComplexObjectBase):
-    def __init__(self, loc, N, ib_val=0.75, l_val=3, jj_c=1, jj_r=1,jj_a=1, jj_b=0):
+    def __init__(self, loc, N, ib_val=0.75, l_val=3, jj_c=1, jj_r=1, jj_a=1, jj_b=0):
         super().__init__(loc=loc)
 
         self.N = N

@@ -120,7 +120,8 @@ class FunctionCompiler:
 
         print('Generated objects are:', " ".join(self.object_dict.keys()))
 
-    def _get_obj_row_indices(self, obj):
+    @staticmethod
+    def _get_obj_row_indices(obj):
         this_obj_row_indices = []
 
         if obj.data_index[0] != 0:

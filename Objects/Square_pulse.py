@@ -1,4 +1,3 @@
-import numpy as np
 from Objects.CurrentSourceBase import CurrentSourceBase
 from Functions import pulse_I
 

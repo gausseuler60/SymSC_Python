@@ -1,5 +1,4 @@
 from Objects.CurrentSourceBase import CurrentSourceBase
-import numpy as np
 from Functions import sin_I
 
 

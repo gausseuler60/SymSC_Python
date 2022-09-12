@@ -16,19 +16,19 @@ class C(ElementBase):
         self.contains_variable = False
 
     def get_matrix_stamp(self, h):
-        C = self.c
+        c = self.c
         loc = self.data_index
 
         if loc[0] == 0:  # no V+
             A = np.array([[0, -1],
-                         [-1, -(2 * h) / (3 * C)]])
+                         [-1, -(2 * h) / (3 * c)]])
         elif loc[1] == 0:  # no V-
             A = np.array([[0, 1],
-                         [1, -(2 * h) / (3 * C)]])
+                         [1, -(2 * h) / (3 * c)]])
         else:
             A = np.array([[0, 0, 1],
                           [0, 0, -1],
-                          [1, -1, -(2 * h) / (3 * C)]])
+                          [1, -1, -(2 * h) / (3 * c)]])
 
         return A
 

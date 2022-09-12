@@ -12,7 +12,9 @@ class ComplexObjectBase(ElementBase):
         super().__init__()
 
         self.loc = loc
+        # must be set in a child class constructor
         self.N = None
+        self.name = None
 
         self.complex = True
         self._new_names_obj = []
