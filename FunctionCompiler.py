@@ -11,7 +11,6 @@ class FunctionCompiler:
         self.object_list = object_list
         left_matrix_list = []
 
-        # TODO add complex object support
         self._assign_data_index()
         object_list = self.object_list
         for obj in object_list:
@@ -170,16 +169,15 @@ class FunctionCompiler:
         i_step = 0
 
         while i_step < n_time_steps:
-            # print(i_step, n_time_steps)
             B_this_step = np.zeros(size)
             for obj in self.object_list:
                 b = obj.get_right_side(sol, i_step, h)
                 indices = obj.row_indices  # self._get_obj_row_indices(obj)
                 for bi, idx in zip(b, indices):
                     B_this_step[idx] += bi
-            # print(B_this_step)
+
             x_now = linalg.solve(A, B_this_step)
-            # print('x', x_now)
+
             sol[:, i_step] = x_now
             time[i_step] = i_step * h
             i_step += 1

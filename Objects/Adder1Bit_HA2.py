@@ -1,52 +1,34 @@
-from Objects.ElementBase import *
-from Objects.JJ import JJ
-from Objects.Ib import Ib
+from Objects.ComplexObjectBase import ComplexObjectBase
 
 
-class Adder1Bit_HA2(ElementBase):
+class Adder1Bit_HA2(ComplexObjectBase):
     def __init__(self, loc):
-        super().__init__()
+        super().__init__(loc=loc)
 
-        self.loc = loc
         self.N = 6
 
         self.name = 'Adder1Bit_HA2'
         self.description = '1-bit adder version HA2'
 
-        self.complex = True
+    def create_elements(self, sk):
+        self.add_JJ(name='Jin1', A=1, B=0, al=1, loc=[sk[0], 0])
+        self.add_JJ(name='Jin2', A=1, B=0, al=1, loc=[sk[1], 0])
+        self.add_JJ(name='Jm', A=0, B=0.7, al=1, loc=[sk[5], 0])
+        self.add_JJ(name='Jv1', A=0, B=0.1, al=1, loc=[sk[0], sk[5]])
+        self.add_JJ(name='Jv2', A=0, B=0.1, al=1, loc=[sk[1], sk[5]])
+        self.add_JJ(name='Jrs', A=0.1, B=0, al=1, loc=[sk[2], sk[4]])
+        self.add_JJ(name='Jlc', A=0.4, B=0, al=1, loc=[sk[3], sk[5]])
+        self.add_JJ(name='Jls', A=0.5, B=0, al=1, loc=[sk[4], sk[5]])
+        self.add_JJ(name='Joutc', A=1, B=0, al=1, loc=[sk[3], 0])
+        self.add_JJ(name='Jouts', A=1.5, B=0, al=1, loc=[sk[4], 0])
+        self.add_JJ(name='Jrc1', A=0.1, B=0, al=1, loc=[sk[0], sk[3]])
+        self.add_JJ(name='Jrc2', A=0.1, B=0, al=1, loc=[sk[1], sk[3]])
 
-    def unzip(self):
-        sk = self.data_index
-        new_names_obj = []
-
-        def add_JJ(name, A, B, al, loc):
-            new_obj = JJ(loc=loc, A=A, B=B, al=al)
-            new_obj.name = f'{self.name}_{name}'
-            new_names_obj.append(new_obj)
-
-        def add_ib(name, val, loc):
-            new_obj = Ib(loc=loc, val=val)
-            new_obj.name = f'{self.name}_{name}'
-            new_names_obj.append(new_obj)
-
-        add_JJ(name='Jin1', A=1, B=0, al=1, loc=[sk[0], 0])
-        add_JJ(name='Jin2', A=1, B=0, al=1, loc=[sk[1], 0])
-        add_JJ(name='Jm', A=0, B=0.7, al=1, loc=[sk[5], 0])
-        add_JJ(name='Jv1', A=0, B=0.1, al=1, loc=[sk[0], sk[5]])
-        add_JJ(name='Jv2', A=0, B=0.1, al=1, loc=[sk[1], sk[5]])
-        add_JJ(name='Jrs', A=0.1, B=0, al=1, loc=[sk[2], sk[4]])
-        add_JJ(name='Jlc', A=0.4, B=0, al=1, loc=[sk[3], sk[5]])
-        add_JJ(name='Jls', A=0.5, B=0, al=1, loc=[sk[4], sk[5]])
-        add_JJ(name='Joutc', A=1, B=0, al=1, loc=[sk[3], 0])
-        add_JJ(name='Jouts', A=1.5, B=0, al=1, loc=[sk[4], 0])
-        add_JJ(name='Jrc1', A=0.1, B=0, al=1, loc=[sk[0], sk[3]])
-        add_JJ(name='Jrc2', A=0.1, B=0, al=1, loc=[sk[1], sk[3]])
-
-        add_ib('ibJin1', val=0.9, loc=[sk[0]])
-        add_ib('ibJin2', val=0.9, loc=[sk[1]])
-        add_ib('ibJm', val=0.65, loc=[sk[5]])
-        add_ib('ibJoutc', val=0.9, loc=[sk[3]])
-        add_ib('ibJouts', val=1.1, loc=[sk[4]])
+        self.add_ib('ibJin1', val=0.9, loc=[sk[0]])
+        self.add_ib('ibJin2', val=0.9, loc=[sk[1]])
+        self.add_ib('ibJm', val=0.65, loc=[sk[5]])
+        self.add_ib('ibJoutc', val=0.9, loc=[sk[3]])
+        self.add_ib('ibJouts', val=1.1, loc=[sk[4]])
 
         return new_names_obj
 
