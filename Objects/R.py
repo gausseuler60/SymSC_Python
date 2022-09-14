@@ -6,6 +6,7 @@ from Objects.ElementBase import ElementBase
 class R(ElementBase):
     def __init__(self, loc, r):
         super().__init__()
+        self.check_loc(loc, 2)
         self.loc = loc
         self.r = r
 
@@ -39,7 +40,7 @@ class R(ElementBase):
             new_data = np.zeros_like(t)
             volt = super().get_data('I', t, sol)
             for i, ti in enumerate(t):
-                new_data[i] = simpson(volt[:i+1], t[:i+1])
+                new_data[i] = simpson(volt[:i + 1], t[:i + 1])
             return new_data
         else:
             return super().get_data(kind, t, sol)

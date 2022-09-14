@@ -4,6 +4,7 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 class XOR(ComplexObjectBase):
     def __init__(self, loc, connect='Current', type_p='Gauss', t0=50, A=1, D=15, T=500, w=1):
         super().__init__(loc=loc)
+        self.check_loc(loc, 3)
         self.N = 10
 
         self.connect = connect

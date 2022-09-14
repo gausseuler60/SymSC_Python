@@ -6,6 +6,7 @@ class JJ(ElementBase):
     def __init__(self, loc, c, r, A, B=1):
         # TODO: add B support
         super().__init__()
+        self.check_loc(loc, 2)
         self.loc = loc
         self.c = c
         self.r = r

@@ -31,12 +31,16 @@ class FunctionCompiler:
             matrix_stamp = o.get_matrix_stamp(h)
             o.data_index = o.loc
 
-            if o.contains_current:  # if it is a current source, it contains only 2 variables (or 1, if grounded)
-                self.m += 1
-                o.current_index = curr_index_now
-                curr_index_now += 1
-            else:
-                o.current_index = -1
+            # if it is a current source, it contains only 2 variables (or 1, if grounded)
+            # because there is no current
+            o.current_index = []
+            if o.contains_current:
+                for _ in range(2 if o.double_current else 1):
+                    self.m += 1
+                    o.current_index.append(curr_index_now)
+                    curr_index_now += 1
+            # else:
+            #     o.current_index = -1
 
             if o.contains_variable:  # if it is a Josephson, it contains 4 variables (or 3, if grounded)
                 self.i += 1
@@ -45,14 +49,15 @@ class FunctionCompiler:
             else:
                 o.var_index = -1
 
+            o.current_index = np.array(o.current_index)
             left_matrix_list.append(matrix_stamp)
         # variables in x vector:
         # 1) n phases
         # 2) i variables
         # 3) m currents
         for obj in object_list:
-            if obj.current_index != -1:
-                obj.current_index += (self.n + self.i)  # voltages -> vars -> currents
+            #if obj.current_index != -1:
+            obj.current_index += (self.n + self.i)  # voltages -> vars -> currents
             if obj.var_index != -1:
                 obj.var_index += self.n  # voltages -> vars
 
@@ -123,18 +128,18 @@ class FunctionCompiler:
     @staticmethod
     def _get_obj_row_indices(obj):
         this_obj_row_indices = []
-
-        if obj.data_index[0] != 0:
-            row_vp = obj.data_index[0] - 1
-            this_obj_row_indices.append(row_vp)
-        if obj.data_index[1] != 0:
-            row_vm = obj.data_index[1] - 1
-            this_obj_row_indices.append(row_vm)
+        # indices of voltage variables (from DataIndex) - use nonzero ones
+        for i, idx in enumerate(obj.data_index):
+            if idx == 0:
+                continue
+            row_this = idx - 1
+            this_obj_row_indices.append(row_this)
+        # index of additional variable (now it is only a JJ phase)
         if obj.var_index != -1:
             row_var = obj.var_index
             this_obj_row_indices.append(row_var)
-        if obj.current_index != -1:
-            row_current = obj.current_index
+        # indices of current variables
+        for row_current in obj.current_index:
             this_obj_row_indices.append(row_current)
 
         return this_obj_row_indices

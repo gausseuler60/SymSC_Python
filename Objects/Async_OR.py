@@ -4,6 +4,7 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 class Async_OR(ComplexObjectBase):
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 3)
         self.N = 8
 
         self.name = 'Async_OR'

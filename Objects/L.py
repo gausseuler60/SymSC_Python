@@ -5,6 +5,7 @@ from Objects.ElementBase import ElementBase
 class L(ElementBase):
     def __init__(self, loc, val):
         super().__init__()
+        self.check_loc(loc, 2)
         self.loc = loc
         self.val = val
 
@@ -33,7 +34,7 @@ class L(ElementBase):
 
     def get_right_side(self, sol, i, h):
         loc = self.data_index
-        index_current = self.current_index
+        index_current = self.current_index[0]
         l = self.val
 
         In_1 = sol[index_current, i - 1] if i > 0 else 0

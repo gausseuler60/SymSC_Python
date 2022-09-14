@@ -6,6 +6,7 @@ from Objects.ElementBase import ElementBase
 class C(ElementBase):
     def __init__(self, loc, c):
         super().__init__()
+        self.check_loc(loc, 2)
         self.loc = loc
         self.c = c
 

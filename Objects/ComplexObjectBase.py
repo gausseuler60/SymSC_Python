@@ -57,3 +57,9 @@ class ComplexObjectBase(ElementBase):
         self.create_elements(sk)
 
         return self._new_names_obj
+
+    def get_data(self, kind, t, sol):
+        # this may be overridden in a child class, if you define any data for a subcircuit
+        raise ValueError('Data for this complex object are undefined.\n'
+                         'To get data of a complex object (a subcircuit), get its particular element '
+                         'from FunctionCompiler.object_dict and then use its get_data method')

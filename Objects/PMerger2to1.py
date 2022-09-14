@@ -4,6 +4,7 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 class PMerger2to1(ComplexObjectBase):
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 3)
         self.N = 3
 
         self.name = 'PMerger2to1'

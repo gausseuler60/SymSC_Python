@@ -4,6 +4,7 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 class NDRO(ComplexObjectBase):
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 5)
         self.N = 12
 
         self.name = 'NDRO'
