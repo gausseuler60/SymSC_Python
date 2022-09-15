@@ -10,7 +10,7 @@ class Likh_Inverter(ComplexObjectBase):
         self.description = 'RSFQ inverter Likharev version'
 
     def create_elements(self, sk):
-        self.add_ib(name='Ib', val=0.5, loc=[sk[5]])
+        self.add_ib(name='Ib', val=0.75, loc=[sk[5]])
 
         self.add_JJ(name='J1', c=1, r=1, A=1, B=0, loc=[sk[4], sk[5]])
         self.add_JJ(name='J2', c=1, r=1, A=1, B=0, loc=[sk[7], sk[6]])
