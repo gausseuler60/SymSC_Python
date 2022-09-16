@@ -2,6 +2,14 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class Async_OR(ComplexObjectBase):
+    """
+    RSFQ logic asynchronous OR gate
+
+    Inputs:
+    1 - first input signal
+    2 - second input signal
+    3 - output
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
         self.check_loc(loc, 3)

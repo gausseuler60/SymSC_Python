@@ -4,7 +4,20 @@ from Functions import gauss_I
 
 
 class Pulses(CurrentSourceBase):
+    """Gaussian current pulse"""
     def __init__(self, loc, connect='Current', type_p='Gauss', t0=50, A=1, D=15, T=500, w=1):
+        """
+        A class constructor
+
+        :param loc: nodes in a circuit to what the element is connected (zero is a ground)
+        :param connect: not implemented yet, use 'current'
+        :param type_p: 'Gauss' for a gaussian pulse, or 'Sin' for a sinusoidal wave
+        :param t0: pulse time (for Gaussian pulse)
+        :param A: pulse amplitude (for Gaussian pulse) (in normalized current units)
+        :param D: pulse width
+        :param T: pulses period
+        :param w: sinusoidal wave frequency (for sinusoidal waves)
+        """
         super().__init__(loc=loc)
 
         # numeric parameters

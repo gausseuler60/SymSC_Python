@@ -2,6 +2,14 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class Async_AND(ComplexObjectBase):
+    """
+    RSFQ logic asynchronous AND gate
+
+    Inputs:
+    1 - first input signal
+    2 - second input signal
+    3 - output
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
         self.check_loc(loc, 3)

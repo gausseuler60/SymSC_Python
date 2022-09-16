@@ -2,8 +2,16 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class SFQ_DC(ComplexObjectBase):
+    """
+    A converter from SFQ pulses to DC pulses
+
+    Inputs:
+    1 - SFQ pulse input
+    2 - DC pulse output
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 2)
         self.N = 30
 
         self.name = 'SFQ_DC'

@@ -2,8 +2,16 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class MDriver(ComplexObjectBase):
+    """
+    Matched Microstrip line (MSL) Driver
+
+    Inputs:
+    1 - input
+    2 - output to a superconductive line
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 2)
         self.N = 8
 
         self.name = 'MDriver'

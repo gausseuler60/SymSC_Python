@@ -2,8 +2,16 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class MReceiver(ComplexObjectBase):
+    """
+    Matched Microstrip line (MSL) Receiver
+
+    Inputs:
+    1 - input from a superconductive line
+    2 - output
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 2)
         self.N = 11
 
         self.name = 'MReceiver'
@@ -27,4 +35,3 @@ class MReceiver(ComplexObjectBase):
         self.add_L(name='L7', val=0.05, loc=[sk[7], sk[8]])
         self.add_L(name='L8', val=0.05, loc=[sk[7], sk[9]])
         self.add_L(name='Lout', val=0.75, loc=[sk[7], sk[1]])
-

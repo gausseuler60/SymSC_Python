@@ -2,8 +2,17 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class Inverter(ComplexObjectBase):
+    """
+    Inverter (RSFQ logic NOT gate)
+
+    Inputs:
+    1 - input signal
+    2 - clock
+    3 - output signal
+    """
     def __init__(self, loc, connect='Current', type_p='Gauss', t0=50, A=1, D=15, T=500, w=1):
         super().__init__(loc=loc)
+        self.check_loc(loc, 3)
         self.N = 27
 
         self.connect = connect
@@ -56,6 +65,5 @@ class Inverter(ComplexObjectBase):
         self.add_L(name='L22', val=0.423, loc=[sk[23], sk[25]])
         self.add_L(name='L23', val=0.011, loc=[sk[26], 0])
         self.add_L(name='L24', val=0.9, loc=[sk[25], sk[2]])
-
 
         self.add_R(name='R', r=5, loc=[sk[6], 0])

@@ -2,8 +2,16 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class TFF(ComplexObjectBase):
+    """
+    T Flip-Flop element
+
+    Inputs:
+    1 - input signal
+    2 - output signal
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 2)
         self.N = 7
 
         self.name = 'TFF'

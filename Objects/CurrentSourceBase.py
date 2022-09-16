@@ -3,7 +3,13 @@ from Objects.ElementBase import ElementBase
 
 
 class CurrentSourceBase(ElementBase):
+    """A base abstract class for current sources"""
     def __init__(self, loc):
+        """
+        A class constructor
+
+        :param loc: nodes in a circuit to what the element is connected (zero is a ground)
+        """
         super().__init__()
 
         if len(loc) == 1:
@@ -19,6 +25,13 @@ class CurrentSourceBase(ElementBase):
         return np.zeros((2, 2)) if 0 in self.loc else np.zeros((1, 1))
 
     def get_current_from_time(self, t):
+        """
+        Gets a current value of this source at arbitrary time moment.
+        MUST be overridden in child classes.
+
+        :param t: a time moment
+        :return: a current value
+        """
         raise NotImplementedError
 
     def get_right_side(self, sol, i, h):

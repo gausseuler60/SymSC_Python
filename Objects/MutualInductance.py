@@ -5,7 +5,16 @@ from Objects.ElementBase import ElementBase
 
 
 class MutualInductance(ElementBase):
+    """A mutual inductance object"""
     def __init__(self, loc, L1, L2, k):
+        """
+        A class constructor
+
+        :param loc: nodes in a circuit to what the element is connected (zero is a ground)
+        :param L1: a first inductance
+        :param L2: a second inductance
+        :param k: a mutual inductance parameter, M = k * sqrt(L1 * L2)
+        """
         super().__init__()
         self.loc = loc
         self.check_loc(loc, 4)

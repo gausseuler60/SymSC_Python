@@ -2,8 +2,18 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class XOR(ComplexObjectBase):
+    """
+    RSFQ logic exclusive OR (XOR) gate
+
+    Inputs:
+    1 - first input signal
+    2 - clock
+    3 - second input signal
+    4 - output
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 4)
         self.N = 16
 
         self.name = 'XOR'
@@ -33,6 +43,3 @@ class XOR(ComplexObjectBase):
         self.add_R(name='R1', r=5, loc=[sk[6], sk[7]])
         self.add_R(name='R2', r=2.5, loc=[sk[7], sk[9]])
         self.add_R(name='R3', r=2.5, loc=[sk[8], sk[7]])
-
-
-        

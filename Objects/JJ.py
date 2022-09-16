@@ -3,7 +3,19 @@ from Objects.ElementBase import ElementBase
 
 
 class JJ(ElementBase):
+    """
+    A Josephson junction simulated with a RCSJ model
+    """
     def __init__(self, loc, c, r, A, B=1):
+        """
+        A class constructor
+
+        :param loc: nodes in a circuit to what the element is connected (zero is a ground)
+        :param c: junction normalized capacity
+        :param r: junction normalized resistance
+        :param A: junction normalized critical current
+        :param B: junction normalized second harmonic of the critical current
+        """
         # TODO: add B support
         super().__init__()
         self.check_loc(loc, 2)

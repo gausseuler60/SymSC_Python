@@ -2,8 +2,18 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class AND(ComplexObjectBase):
+    """
+    RSFQ logic AND gate
+
+    Inputs:
+    1 - first input signal
+    2 - clock
+    3 - second input signal
+    4 - output
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 4)
         self.N = 12
 
         self.name = 'AND'

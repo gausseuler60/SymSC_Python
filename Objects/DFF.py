@@ -2,8 +2,17 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class DFF(ComplexObjectBase):
+    """
+    D Flip-Flop element
+
+    Inputs:
+    1 - input signal
+    2 - clock
+    3 - output signal
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 3)
         self.N = 7
 
         self.name = 'DFF'

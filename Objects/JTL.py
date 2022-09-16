@@ -2,8 +2,27 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class JTL(ComplexObjectBase):
+    """
+    A Josephson transmission line
+    Inputs:
+    1 - input signal
+    2 - output signal
+    """
     def __init__(self, loc, N, ib_val=0.75, l_val=3, jj_c=1, jj_r=0.5, jj_a=1, jj_b=0):
+        """
+        A class constructor
+
+        :param loc: nodes in a circuit to what the element is connected (zero is a ground)
+        :param N: a length of a line (a number of Josephson junctions)
+        :param ib_val: a value of current biases (in normalized current units)
+        :param l_val: a value of inductances (in normalized inductance units)
+        :param jj_c: a value of Josephson junction capacitances (in normalized capacitance units)
+        :param jj_r: a value of Josephson junction resistances (in normalized resistance units)
+        :param jj_a: a value of Josephson junction critical currents (in normalized Ic units)
+        :param jj_b: a value of Josephson junction critical currents second harmonics (in normalized Ic units)
+        """
         super().__init__(loc=loc)
+        self.check_loc(loc, 2)
 
         self.N = N
         self.ib_val = ib_val

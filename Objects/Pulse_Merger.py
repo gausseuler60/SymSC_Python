@@ -2,8 +2,17 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class Pulse_Merger(ComplexObjectBase):
+    """
+    SFQ pulse merger
+
+    Inputs:
+    1 - first input signal
+    2 - second input signal
+    3 - merged output
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 3)
 
         self.N = 14
 

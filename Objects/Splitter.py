@@ -2,8 +2,17 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class Splitter(ComplexObjectBase):
+    """
+    SFQ pulse splitter
+
+    Inputs:
+    1 - input signal
+    2 - output signal 1
+    3 - output signal 2
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
+        self.check_loc(loc, 3)
         self.N = 4
 
         self.name = 'Splitter'

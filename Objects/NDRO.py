@@ -2,6 +2,15 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 
 class NDRO(ComplexObjectBase):
+    """
+    NDRO (Non Destructive Read Out) cell
+    Inputs:
+    1 -
+    2 -
+    3 -
+    4 -
+    5 -
+    """
     def __init__(self, loc):
         super().__init__(loc=loc)
         self.check_loc(loc, 5)

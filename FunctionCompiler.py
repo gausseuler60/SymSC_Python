@@ -3,11 +3,30 @@ from scipy import linalg
 
 
 class FunctionCompiler:
+    """
+    A main class for performing simulations.
 
+    Usage:
+
+    1) Instantiate all circuit objects, specify their parameters and location
+
+    2) Instantiate a FunctionCompiler class, pass into it a list of objects and time
+
+    3) Call the solve() method
+
+    4) Call the get_data() method for any particular object to get simulation results for it
+    """
     def __init__(self, object_list, t):
+        """
+        Class constructor for FunctionCompiler
+
+        :param object_list: a list of object instances to build circuit from them
+        :param t: time array, must be monotonically increasing and evenly spaced (to extract step h correctly)
+        """
+        t = np.array(t)
         self._check_time(t)
         self.h = h = t[1] - t[0]
-        self.time = np.array(t)
+        self.time = t
         self.object_list = object_list
         left_matrix_list = []
 
@@ -39,8 +58,6 @@ class FunctionCompiler:
                     self.m += 1
                     o.current_index.append(curr_index_now)
                     curr_index_now += 1
-            # else:
-            #     o.current_index = -1
 
             if o.contains_variable:  # if it is a Josephson, it contains 4 variables (or 3, if grounded)
                 self.i += 1
@@ -56,7 +73,6 @@ class FunctionCompiler:
         # 2) i variables
         # 3) m currents
         for obj in object_list:
-            #if obj.current_index != -1:
             obj.current_index += (self.n + self.i)  # voltages -> vars -> currents
             if obj.var_index != -1:
                 obj.var_index += self.n  # voltages -> vars
@@ -159,6 +175,12 @@ class FunctionCompiler:
         self.A = final_A
 
     def solve(self, y0=None):
+        """
+        Starts a simulation.
+
+        :param y0: initial conditions vector for all variables (default - all zeros)
+        :return: array: rows are variables, columns are time steps
+        """
         size = self.m + self.n + self.i
         h = self.h
         A = self.A

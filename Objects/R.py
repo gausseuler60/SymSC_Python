@@ -4,7 +4,16 @@ from Objects.ElementBase import ElementBase
 
 
 class R(ElementBase):
+    """
+    Resistor
+    """
     def __init__(self, loc, r):
+        """
+        A class constructor
+
+        :param loc: nodes in a circuit to what the element is connected (zero is a ground)
+        :param r: normalized resistance
+        """
         super().__init__()
         self.check_loc(loc, 2)
         self.loc = loc

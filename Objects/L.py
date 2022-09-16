@@ -3,7 +3,16 @@ from Objects.ElementBase import ElementBase
 
 
 class L(ElementBase):
+    """
+    Inductor
+    """
     def __init__(self, loc, val):
+        """
+        A class constructor
+
+        :param loc: nodes in a circuit to what the element is connected (zero is a ground)
+        :param val: normalized inductance
+        """
         super().__init__()
         self.check_loc(loc, 2)
         self.loc = loc
