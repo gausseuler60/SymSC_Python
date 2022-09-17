@@ -189,12 +189,12 @@ class FunctionCompiler:
         if y0 is None:
             y0 = np.zeros(size)
 
-        n_time_steps = int(np.ceil(t_max / h)) + 1
+        n_time_steps = len(self.time)
         sol = np.zeros((size, n_time_steps))
         time = np.zeros(n_time_steps)
         sol[:, 0] = y0
 
-        i_step = 0
+        i_step = 1
 
         while i_step < n_time_steps:
             B_this_step = np.zeros(size)
