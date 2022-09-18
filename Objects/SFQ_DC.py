@@ -11,7 +11,7 @@ class SFQ_DC(ComplexObjectBase):
     """
     def __init__(self, loc):
         super().__init__(loc=loc)
-        self.check_loc(loc, 2)
+        self.check_loc(loc, 3)
         self.N = 30
 
         self.name = 'SFQ_DC'

@@ -5,11 +5,11 @@ class NDRO(ComplexObjectBase):
     """
     NDRO (Non Destructive Read Out) cell
     Inputs:
-    1 -
-    2 -
-    3 -
-    4 -
-    5 -
+    1 – clock 1 
+    2 – input signal
+    3 – clock 2
+    4 – output signal
+    5  – N/C
     """
     def __init__(self, loc):
         super().__init__(loc=loc)
