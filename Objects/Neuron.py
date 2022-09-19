@@ -1,8 +1,9 @@
 from Objects.ComplexObjectBase import ComplexObjectBase
 
+
 class Neuron(ComplexObjectBase):
     def __init__(self, loc):
-        super().__init__()
+        super().__init__(loc=loc)
         self.check_loc(loc, 2)
         self.N = 4
 

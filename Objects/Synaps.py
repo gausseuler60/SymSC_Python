@@ -3,13 +3,12 @@ from Objects.ComplexObjectBase import ComplexObjectBase
 
 class Synaps(ComplexObjectBase):
     def __init__(self, loc):
-        super().__init__()
+        super().__init__(loc=loc)
         self.check_loc(loc, 2)
         self.N = 3
 
         self.name = 'Synaps'
         self.description = 'Crotty Synaps 2010'
-
 
     def create_elements(self, sk):
         
@@ -18,5 +17,4 @@ class Synaps(ComplexObjectBase):
         
         self.add_C(name='C_syn', c=1, loc=[sk[1], 0])
 
-        
         return new_names_obj
