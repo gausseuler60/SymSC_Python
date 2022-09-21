@@ -51,4 +51,4 @@ def sin_I(t, t0, length, w, A):
     if t <= t0 or t >= t0+length:
         return 0
     else:
-        return np.abs(A*np.sin(w*(t-t0)))
+        return A*np.sin(w*(t-t0))
