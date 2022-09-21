@@ -16,9 +16,7 @@ class Synapse_RLC(ComplexObjectBase):
         self.description = 'Crotty synapse 2010'
         
     def create_elements(self, sk):
-        
         self.add_L(name='L_syn', val=self.l_syn, loc=[sk[0], sk[2]])
-        self.add_R(name='R_syn', val=self.r_syn, loc=[sk[2], sk[3]])
-        self.add_C(name='C_syn', val=self.c_syn, loc=[sk[3], 0])
-        self.add_R(name='R_12', val=self.r_12, loc=[sk[3], sk[1]])
-        
+        self.add_R(name='R_syn', r=self.r_syn, loc=[sk[2], sk[3]])
+        self.add_C(name='C_syn', c=self.c_syn, loc=[sk[3], 0])
+        self.add_R(name='R_12', r=self.r_12, loc=[sk[3], sk[1]])
