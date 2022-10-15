@@ -19,9 +19,9 @@ class Neuron_3JJ(ComplexObjectBase):
 
     def create_elements(self, sk):
         
-        self.add_JJ(name='JJ_1', c=1, r=np.sqrt(self.beta), A=1, B=0, loc=[sk[2], sk[3]])
-        self.add_JJ(name='JJ_2', c=1, r=np.sqrt(self.beta), A=1, B=0, loc=[sk[1], 0])
-        self.add_JJ(name='JJ_3', c=1, r=np.sqrt(self.beta), A=self.eta, B=0, loc=[sk[2], sk[1]])
+        self.add_JJ(name='JJ_1', c=beta, A=1, B=0, loc=[sk[2], sk[3]])
+        self.add_JJ(name='JJ_2', c=beta, A=1, B=0, loc=[sk[1], 0])
+        self.add_JJ(name='JJ_3', c=beta, A=self.eta, B=0, loc=[sk[2], sk[1]])
         
         self.add_L(name='L_1', val=self.l, loc=[sk[0], 0])
         self.add_L(name='L_2', val=self.l_s, loc=[sk[0], sk[2]])
@@ -29,6 +29,3 @@ class Neuron_3JJ(ComplexObjectBase):
         self.add_L(name='L_4', val=self.l_s, loc=[sk[4], sk[1]])
 
         self.add_ib(name='I_Bias', val=self.ib, loc=[sk[3]])
-
-
-

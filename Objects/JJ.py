@@ -6,7 +6,7 @@ class JJ(ElementBase):
     """
     A Josephson junction simulated with a RCSJ model
     """
-    def __init__(self, loc, c, r, A, B=1):
+    def __init__(self, loc, c, A, B=1):
         """
         A class constructor
 
@@ -21,7 +21,7 @@ class JJ(ElementBase):
         self.check_loc(loc, 2)
         self.loc = loc
         self.c = c
-        self.r = r
+        self.r = 1 / A
         self.A = A
 
         self.name = 'JJ'
@@ -46,8 +46,8 @@ class JJ(ElementBase):
 
             A = np.array([[0, 0, 0, 1],
                           [0, 0, 0, -1],
-                          [1, -1, -3 * R / (2 * h), 0],
-                          [(C + 1) / R, -(C + 1) / R, 0, -1]])
+                          [1, -1, -3 / (2 * h), 0],
+                          [((2 * h + 3 * C * R) / (2 * R * h)), ((2 * h + 3 * C * R) / (2 * R * h)), 0, -1]])
 
         return A
 
@@ -79,8 +79,8 @@ class JJ(ElementBase):
         C = self.c
         R = self.r
 
-        rhs = R * (-(2 / h) * fn_1 + (1 / (2 * h)) * fn_2)
-        Is = -A * np.sin(phi_0) + C / R * (4 / 3 * vn_1 - 1 / 3 * vn_2)
+        rhs = (-(2 / h) * fn_1 + (1 / (2 * h)) * fn_2)
+        Is = -A * np.sin(phi_0) + (2 * C / h) * vn_1 - (C / (2 * h)) * vn_2
         B = np.zeros(3) if 0 in self.loc else np.zeros(4)
         B[-1] = Is
         B[-2] = rhs
