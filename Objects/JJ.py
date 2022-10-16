@@ -20,8 +20,9 @@ class JJ(ElementBase):
         super().__init__()
         self.check_loc(loc, 2)
         self.loc = loc
-        self.c = c
         self.r = 1 / A
+        self.c = c
+        
         self.A = A
 
         self.name = 'JJ'
@@ -36,18 +37,18 @@ class JJ(ElementBase):
 
         if self.loc[0] == 0:  # no V+
             A = np.array([[0, 0, -1],
-                          [-1, -3 * R / (2 * h), 0],
-                          [-(C + 1) / R, 0, -1]])
+                          [-1, -3/(2 * h), 0],
+                          [-((2 * h + 3 * C * R) / (2 * R * h)), 0, -1]])
         elif self.loc[1] == 0:  # no V-
             A = np.array([[0, 0, 1],
-                          [1, -3 * R / (2 * h), 0],
-                          [(C + 1) / R, 0, -1]])
+                          [1, -3/(2 * h), 0],
+                          [((2 * h + 3 * C * R) / (2 * R * h)), 0, -1]])
         else:
 
             A = np.array([[0, 0, 0, 1],
                           [0, 0, 0, -1],
                           [1, -1, -3 / (2 * h), 0],
-                          [((2 * h + 3 * C * R) / (2 * R * h)), ((2 * h + 3 * C * R) / (2 * R * h)), 0, -1]])
+                          [((2 * h + 3 * C * R) / (2 * R * h)), -((2 * h + 3 * C * R) / (2 * R * h)), 0, -1]])
 
         return A
 
