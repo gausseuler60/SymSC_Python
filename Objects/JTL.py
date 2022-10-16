@@ -8,7 +8,7 @@ class JTL(ComplexObjectBase):
     1 - input signal
     2 - output signal
     """
-    def __init__(self, loc, N, ib_val=0.75, l_val=3, jj_c=1, jj_r=0.5, jj_a=1, jj_b=0):
+    def __init__(self, loc, N, ib_val=0.75, l_val=3, jj_c=1, jj_a=1, jj_b=0):
         """
         A class constructor
 
@@ -28,8 +28,8 @@ class JTL(ComplexObjectBase):
         self.ib_val = ib_val
         self.l_val = l_val
         self.jj_c = jj_c
-        self.jj_r = jj_r
         self.jj_a = jj_a
+        self.jj_r = 1/jj_a
         self.jj_b = jj_b
 
         self.name = 'JTL'
@@ -42,7 +42,7 @@ class JTL(ComplexObjectBase):
         for i in range(self.N):
             # Josephson junction
             name = f'JJ{i + 1}'
-            self.add_JJ(name=name, loc=[sk[i], 0], c=self.jj_c, r=self.jj_r, A=self.jj_a, B=self.jj_b)
+            self.add_JJ(name=name, loc=[sk[i], 0], c=self.jj_c, A=self.jj_a, B=self.jj_b)
 
             # Current bias
             name = f'Ib{i + 1}'
