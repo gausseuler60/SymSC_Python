@@ -52,3 +52,14 @@ def sin_I(t, t0, length, w, A):
         return 0
     else:
         return A*np.sin(w*(t-t0))
+
+
+def periodic_square(t, t0, pulse_length, total_length, freq, A):
+    if t < t0 or t >= t0 + total_length:
+        return 0
+    else:
+        period = 1 / freq
+        abs_time = t - t0
+        n_periods_before = np.fix(abs_time / period)
+        corrected_time = abs_time - period * n_periods_before
+        return A if corrected_time <= pulse_length else 0
