@@ -6,6 +6,7 @@ class JJ(ElementBase):
     """
     A Josephson junction simulated with a RCSJ model
     """
+
     def __init__(self, loc, c, A, B=1):
         """
         A class constructor
@@ -20,8 +21,9 @@ class JJ(ElementBase):
         super().__init__()
         self.check_loc(loc, 2)
         self.loc = loc
-        self.c = c
         self.r = 1 / A
+        self.c = c
+
         self.A = A
 
         self.name = 'JJ'
@@ -36,18 +38,18 @@ class JJ(ElementBase):
 
         if self.loc[0] == 0:  # no V+
             A = np.array([[0, 0, -1],
-                          [-1, -3 * R / (2 * h), 0],
-                          [-(C + 1) / R, 0, -1]])
+                          [-1, -3 / (2 * h), 0],
+                          [-((1 / R) + 3 * C / (2 * h)), 0, -1]])
         elif self.loc[1] == 0:  # no V-
             A = np.array([[0, 0, 1],
-                          [1, -3 * R / (2 * h), 0],
-                          [(C + 1) / R, 0, -1]])
+                          [1, -3 / (2 * h), 0],
+                          [((1 / R) + 3 * C / (2 * h)), 0, -1]])
         else:
 
             A = np.array([[0, 0, 0, 1],
                           [0, 0, 0, -1],
                           [1, -1, -3 / (2 * h), 0],
-                          [((2 * h + 3 * C * R) / (2 * R * h)), ((2 * h + 3 * C * R) / (2 * R * h)), 0, -1]])
+                          [((1 / R) + 3 * C / (2 * h)), -((1 / R) + 3 * C / (2 * h)), 0, -1]])
 
         return A
 
@@ -58,7 +60,7 @@ class JJ(ElementBase):
         fn_1 = sol[index_phase, i - 1] if i != 0 else 0  # phi+ - phi-
         fn_2 = sol[index_phase, i - 2] if i > 1 else 0  # phi+ - phi-
 
-        if self.data_index[0] == 0:   # no V+
+        if self.data_index[0] == 0:  # no V+
             vn_1 = - sol[index_voltage[1] - 1, i - 1] if i != 0 else 0  # V+ - V-
             vn_2 = - sol[index_voltage[1] - 1, i - 2] if i > 1 else 0  # V+ - V-
             vn_3 = - sol[index_voltage[1] - 1, i - 3] if i > 2 else 0  # V+ - V-
@@ -79,7 +81,7 @@ class JJ(ElementBase):
         C = self.c
         R = self.r
 
-        rhs = (-(2 / h) * fn_1 + (1 / (2 * h)) * fn_2)
+        rhs = -(2 / h) * fn_1 + (1 / (2 * h)) * fn_2
         Is = -A * np.sin(phi_0) + (2 * C / h) * vn_1 - (C / (2 * h)) * vn_2
         B = np.zeros(3) if 0 in self.loc else np.zeros(4)
         B[-1] = Is
