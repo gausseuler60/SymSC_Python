@@ -23,5 +23,5 @@ class Arbitrary_current(CurrentSourceBase):
         self.name = "Arbitrary_current"
 
     def get_current_from_time(self, t):
-        idx = np.nonzero(t==self.t)[0][0]
+        idx = np.nonzero(t == self.t)[0][0]
         return self.curr_t[idx]

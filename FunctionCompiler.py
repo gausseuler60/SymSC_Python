@@ -92,51 +92,62 @@ class FunctionCompiler:
         complex_obj_indices = []
         N = 0
 
-        for i, obj in enumerate(self.object_list):
-            # make an unique number sequence in names for each object type
-            if obj.name in index_dict:
-                index_dict[obj.name] += 1
-                numb = index_dict[obj.name]
-            else:
-                index_dict[obj.name] = 1
-                numb = 1
+        # Iterations to unpack nested complex objects
+        while True:
+            for i, obj in enumerate(self.object_list):
+                if obj.complex:
+                    complex_objects.append(obj)
+                    complex_obj_indices.append(i)
 
-            obj.name = f"{obj.name}{numb}"  # make one-based numbering
-            obj.data_index = obj.loc
+            if len(complex_objects) == 0:
+                break
 
-            if obj.complex:
-                complex_objects.append(obj)
-                complex_obj_indices.append(i)
+            for i, obj in enumerate(self.object_list):
+                # make an unique number sequence in names for each object type
+                if not hasattr(obj, 'named'):
+                    if obj.name in index_dict:
+                        index_dict[obj.name] += 1
+                        numb = index_dict[obj.name]
+                    else:
+                        index_dict[obj.name] = 1
+                        numb = 1
+                    obj.name = f"{obj.name}{numb}"  # make one-based numbering
+                    obj.named = 1
 
-            if N < max(obj.loc):
-                N = max(obj.loc)
+                obj.data_index = obj.loc
 
-        self.N = N
+                if N < max(obj.loc):
+                    N = max(obj.loc)
 
-        # generate DataIndex for complex objects
-        # in a complex object, first 2 (sometimes 1) DataIndex are input and output,
-        # and other ones must be generated
-        for comp_obj in complex_objects:
-            n_this = comp_obj.N
-            pins = len(comp_obj.loc)
+            self.N = N
 
-            new_data_index = np.zeros(n_this - pins, dtype=int)
-            if n_this > pins:
-                for p in range(0, n_this - pins):
-                    self.N += 1
-                    new_data_index[p] = self.N
-                comp_obj.data_index.extend(new_data_index)
+            # generate DataIndex for complex objects
+            # in a complex object, first 2 (sometimes 1) DataIndex are input and output,
+            # and other ones must be generated
+            for comp_obj in complex_objects:
+                n_this = comp_obj.N
+                pins = len(comp_obj.loc)
 
-        # unzip complex objects
-        for i, comp_obj in zip(complex_obj_indices, complex_objects):
-            # generate child objects for this object
-            new_names_obj = comp_obj.unzip()
-            self.object_list[i] = None
-            self.object_list.extend(new_names_obj)
+                new_data_index = np.zeros(n_this - pins, dtype=int)
+                if n_this > pins:
+                    for p in range(0, n_this - pins):
+                        self.N += 1
+                        new_data_index[p] = self.N
+                    comp_obj.data_index.extend(new_data_index)
 
-        self.object_list = [obj for obj in self.object_list if not (obj is None)]
+            # unzip complex objects
+            for i, comp_obj in zip(complex_obj_indices, complex_objects):
+                # generate child objects for this object
+                new_names_obj = comp_obj.unzip()
+                self.object_list[i] = None
+                self.object_list.extend(new_names_obj)
 
-        self.object_dict = {obj.name: obj for obj in self.object_list}
+            complex_objects = []
+            complex_obj_indices = []
+
+            self.object_list = [obj for obj in self.object_list if not (obj is None)]
+
+            self.object_dict = {obj.name: obj for obj in self.object_list}
         self._assigned = True
 
         print('Generated objects are:', " ".join(self.object_dict.keys()))

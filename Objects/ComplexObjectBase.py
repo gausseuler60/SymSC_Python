@@ -102,6 +102,14 @@ class ComplexObjectBase(ElementBase):
         new_obj.name = f'{self.name}_{name}'
         self._new_names_obj.append(new_obj)
 
+    def add_complex_object(self, obj_instance):
+        """
+        Adds an arbitrary element to a subcircuit (may be another subcircuit)
+        :param obj_instance: an instance of object to add (use sk array to specify its connections)
+        """
+        obj_instance.name = f'{self.name}_{obj_instance.name}'
+        self._new_names_obj.append(obj_instance)
+
     def create_elements(self, sk):
         """
         MUST be implemented in child classes.
