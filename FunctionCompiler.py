@@ -90,6 +90,7 @@ class FunctionCompiler:
         index_dict = {}
         complex_objects = []
         complex_obj_indices = []
+        self.object_dict = {}
         N = 0
 
         # Iterations to unpack nested complex objects
@@ -99,7 +100,7 @@ class FunctionCompiler:
                     complex_objects.append(obj)
                     complex_obj_indices.append(i)
 
-            if len(complex_objects) == 0:
+            if len(complex_objects) == 0 and len(self.object_dict) != 0:
                 break
 
             for i, obj in enumerate(self.object_list):
